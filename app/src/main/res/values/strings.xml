@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">Machine</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="header_title1">都市空間</string>
+    <string name="header_title2">24 City Space</string>
+    <string name="parking_slot">停車場</string>
+    <string name="park_john_en">Park John</string>
+
+    <string name="clear">清除</string>
+    <string name="next_page">下一頁</string>
+    <string name="previous_page">上一頁</string>
+
+    <string name="scan_carrier">請掃描 手機載具條碼</string>
+    <string name="no_carrier">不使用載具 可選擇 上一頁</string>
+
+    <string name="can_exit">可離場</string>
+    <string name="exit_desc">請於15分鐘內離場</string>
+    <string name="next_time">歡迎再次光臨</string>
+    <string name="input_company_id">請輸入 統一編號,輸入後請按 列印發票</string>
+    <string name="no_company_id">無需統一編號,請按 列印發票 或 選擇載具</string>
+    <string name="print_invoice">列印發票</string>
+    <string name="carrier_number">載具</string>
+    <string name="print_invoice_time">將於30秒後 列印紙本發票</string>
+
+    <string name="pay_instruction">請依指示金額投入硬幣或紙鈔</string>
+
+    <string name="total_pay">停車費用</string>
+    <string name="should_pay">應繳費用</string>
+    <string name="already_pay">已繳費用</string>
+    <string name="entrance_time">入場時間</string>
+    <string name="exit_time">出場時間</string>
+
+    <string name="total_count">結算金額</string>
+    <string name="discount_count">折扣金額</string>
+    <string name="end_count">應繳金額</string>
+
+    <string name="car_number">車牌號碼</string>
+    <string name="cancel_pay">交易取消</string>
+
+    <string name="choose_payment">請點選繳款方式</string>
+    <string name="cash">現金</string>
+    <string name="card">悠遊卡</string>
+    <string name="line_pay">Line Pay</string>
+
+    <string name="pick_car">請點選你的車號車輛圖片</string>
+    <string name="cancel">取消</string>
+
+    <string name="enter_car_number">請輸入車號 例如AAA-1234 即輸入1234</string>
+    <string name="search">查詢</string>
+</resources>
