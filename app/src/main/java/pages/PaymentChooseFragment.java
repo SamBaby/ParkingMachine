@@ -16,7 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.machine.MainViewModel;
-import com.example.machine.R;
+import com.android.machine.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -28,12 +28,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import datamodel.BasicFee;
 import datamodel.CarInside;
 import datamodel.DayHoliday;
-import datamodel.Holiday;
 import event.Var;
 import util.ApacheServerRequest;
 import util.Util;
@@ -98,7 +96,24 @@ public class PaymentChooseFragment extends Fragment {
             ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
             Button btnCancel = root.findViewById(R.id.button_cancel);
             btnCancel.setOnClickListener(v -> viewPager.setCurrentItem(0, true));
+
+            Button btnCash = root.findViewById(R.id.button_cash);
+            Button btnEZPay = root.findViewById(R.id.button_ezpay);
+            Button btnLinePay = root.findViewById(R.id.button_linepay);
+            btnCash.setOnClickListener(v -> {
+                viewModel.setPayWay(0);
+                viewPager.setCurrentItem(2, true);
+            });
+            btnEZPay.setOnClickListener(v -> {
+                viewModel.setPayWay(1);
+                viewPager.setCurrentItem(2, true);
+            });
+            btnLinePay.setOnClickListener(v -> {
+                viewModel.setPayWay(2);
+                viewPager.setCurrentItem(2, true);
+            });
         }
+
         return root;
     }
 
@@ -111,10 +126,7 @@ public class PaymentChooseFragment extends Fragment {
             //set image
             try {
                 String url = car.getPicture_url();
-                url = url.replace(" ", "+");
-                byte[] decodedBytes = Util.getBase64Decode(url);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                image.setImageBitmap(bitmap);
+                image.setImageBitmap(getPictureByPath(url));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -350,4 +362,25 @@ public class PaymentChooseFragment extends Fragment {
         return false;
     }
 
+    private Bitmap getPictureByPath(String path){
+        Var<Bitmap> bitmap = new Var<>();
+        Thread t = new Thread(()->{
+            try {
+                String base = ApacheServerRequest.getBase64Picture(path);
+                if(base != null){
+                    byte[] bytes = Util.getBase64Decode(base);
+                    bitmap.set(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return bitmap.get();
+    }
 }

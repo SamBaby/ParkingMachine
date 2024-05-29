@@ -14,12 +14,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.machine.MainViewModel;
-import com.example.machine.R;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.android.machine.R;
+import com.ftdi.j2xx.FT_Device;
 
 import datamodel.CarInside;
+import event.Var;
+import util.ApacheServerRequest;
 import util.Util;
 
 /**
@@ -37,7 +37,15 @@ public class PayFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
+    private FT_Device coinInputDevice;
+    private FT_Device paperInputDevice;
+    private FT_Device coin5Device;
+    private FT_Device coin10Device;
+    private FT_Device coin50Device;
+    private boolean readCoinInput = false;
+    private boolean readPaperInput = false;
+    private int shouldPay = 0;
+    private int pay = 0;
     public PayFragment() {
         // Required empty public constructor
     }
@@ -80,9 +88,17 @@ public class PayFragment extends Fragment {
             viewModel.getDiscountMoney().observe(getViewLifecycleOwner(), this::setDiscount);
             viewModel.getShouldPayMoney().observe(getViewLifecycleOwner(), this::setShouldPay);
             viewModel.getPayTime().observe(getViewLifecycleOwner(), this::setPayTime);
+            viewModel.getPayWay().observe(getViewLifecycleOwner(), this::startPay);
+
+            coinInputDevice = viewModel.getCoinInputDevice().getValue();
+            paperInputDevice = viewModel.getPaperInputDevice().getValue();
+            coin5Device = viewModel.getCoin5Device().getValue();
+            coin10Device = viewModel.getCoin10Device().getValue();
+            coin50Device = viewModel.getCoin50Device().getValue();
         }
         return root;
     }
+
     private void setCarView(CarInside car) {
         if (car != null && getView() != null) {
             ImageView image = getView().findViewById(R.id.image_car);
@@ -91,11 +107,8 @@ public class PayFragment extends Fragment {
             //set image
             try {
                 String url = car.getPicture_url();
-                url = url.replace(" ", "+");
-                byte[] decodedBytes = Util.getBase64Decode(url);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                image.setImageBitmap(bitmap);
-            }catch (Exception e){
+                image.setImageBitmap(getPictureByPath(url));
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             //set car number
@@ -118,6 +131,7 @@ public class PayFragment extends Fragment {
             TextView text = getView().findViewById(R.id.should_pay);
             text.setText(String.valueOf(amount));
         }
+        shouldPay = amount;
     }
 
     private void setDiscount(int amount) {
@@ -127,11 +141,45 @@ public class PayFragment extends Fragment {
         }
     }
 
-    private void setPayTime(String time){
+    private void setPayTime(String time) {
         if (getView() != null) {
             TextView text = getView().findViewById(R.id.time_out);
             text.setText(time);
         }
     }
 
+    private void startPay(int payWay) {
+        pay = 0;
+        switch(payWay){
+            case 0://Cash
+                break;
+            case 1://EZ Pay
+                break;
+            case 2://Line Pay
+                break;
+            default:
+                break;
+        }
+    }
+    private Bitmap getPictureByPath(String path){
+        Var<Bitmap> bitmap = new Var<>();
+        Thread t = new Thread(()->{
+            try {
+                String base = ApacheServerRequest.getBase64Picture(path);
+                if(base != null){
+                    byte[] bytes = Util.getBase64Decode(base);
+                    bitmap.set(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return bitmap.get();
+    }
 }

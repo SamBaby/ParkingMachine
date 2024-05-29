@@ -126,6 +126,7 @@
             android:padding="60dp">
 
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_cash"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/next_page_button"
@@ -134,6 +135,7 @@
                 android:textSize="50sp"
                 android:layout_gravity="center"/>
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_ezpay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/next_page_button"
@@ -143,6 +145,7 @@
                 android:layout_gravity="center"
                 android:layout_marginTop="40dp"/>
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_linepay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/next_page_button"

@@ -3,7 +3,7 @@ package pages;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Base64;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +17,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.machine.MainViewModel;
-import com.example.machine.R;
+import com.android.machine.R;
 
 import java.util.Vector;
 
 import datamodel.CarInside;
+import event.Var;
+import util.ApacheServerRequest;
 import util.Util;
 
 /**
@@ -101,6 +103,12 @@ public class CarViewFragment extends Fragment {
             MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             viewModel.getCars().observe(getViewLifecycleOwner(), this::setCarView);
         }
+        ImageView image = root.findViewById(R.id.image_car1);
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/cars/EAH5678.png";
+        Bitmap bitmap = BitmapFactory.decodeFile(path);
+        if (bitmap != null) {
+            image.setImageBitmap(bitmap);
+        }
         return root;
     }
 
@@ -164,10 +172,7 @@ public class CarViewFragment extends Fragment {
         if (car != null) {
             try {
                 String url = car.getPicture_url();
-                url = url.replace(" ", "+");
-                byte[] decodedBytes = Util.getBase64Decode(url);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                image.setImageBitmap(bitmap);
+                image.setImageBitmap(getPictureByPath(url));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -203,10 +208,7 @@ public class CarViewFragment extends Fragment {
         if (car != null) {
             try {
                 String url = car.getPicture_url();
-                url = url.replace(" ", "+");
-                byte[] decodedBytes = Util.getBase64Decode(url);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                image.setImageBitmap(bitmap);
+                image.setImageBitmap(getPictureByPath(url));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -241,10 +243,7 @@ public class CarViewFragment extends Fragment {
         if (car != null) {
             try {
                 String url = car.getPicture_url();
-                url = url.replace(" ", "+");
-                byte[] decodedBytes = Util.getBase64Decode(url);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                image.setImageBitmap(bitmap);
+                image.setImageBitmap(getPictureByPath(url));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -279,10 +278,7 @@ public class CarViewFragment extends Fragment {
         if (car != null) {
             try {
                 String url = car.getPicture_url();
-                url = url.replace(" ", "+");
-                byte[] decodedBytes = Util.getBase64Decode(url);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                image.setImageBitmap(bitmap);
+                image.setImageBitmap(getPictureByPath(url));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -304,5 +300,27 @@ public class CarViewFragment extends Fragment {
 
             view.setOnClickListener(null);
         }
+    }
+
+    private Bitmap getPictureByPath(String path){
+        Var<Bitmap> bitmap = new Var<>();
+        Thread t = new Thread(()->{
+            try {
+                String base = ApacheServerRequest.getBase64Picture(path);
+                if(base != null){
+                    byte[] bytes = Util.getBase64Decode(base);
+                    bitmap.set(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return bitmap.get();
     }
 }

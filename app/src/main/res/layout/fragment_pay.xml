@@ -124,33 +124,74 @@
             android:background="@drawable/light_gery_background"
             android:orientation="vertical"
             android:padding="60dp">
-
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="20dp"
-                android:gravity="center"
-                android:text="@string/total_pay"
-                android:textColor="@color/black"
-                android:textSize="50sp" />
-
-            <TextView
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="20dp"
+                    android:gravity="center"
+                    android:text="@string/total_pay"
+                    android:textColor="@color/black"
+                    android:textSize="50sp" />
+                <TextView
+                    android:id="@+id/text_total"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="20dp"
+                    android:gravity="center"
+                    android:text=""
+                    android:textColor="@color/black"
+                    android:textSize="50sp" />
+            </LinearLayout>
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="20dp"
-                android:gravity="center"
-                android:text="@string/should_pay"
-                android:textColor="@color/black"
-                android:textSize="50sp" />
-
-            <TextView
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="20dp"
+                    android:gravity="center"
+                    android:text="@string/should_pay"
+                    android:textColor="@color/black"
+                    android:textSize="50sp" />
+                <TextView
+                    android:id="@+id/text_should_pay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="20dp"
+                    android:gravity="center"
+                    android:text=""
+                    android:textColor="@color/black"
+                    android:textSize="50sp" />
+            </LinearLayout>
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="20dp"
-                android:gravity="center"
-                android:text="@string/already_pay"
-                android:textColor="@color/black"
-                android:textSize="50sp" />
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="20dp"
+                    android:gravity="center"
+                    android:text="@string/already_pay"
+                    android:textColor="@color/black"
+                    android:textSize="50sp" />
+                <TextView
+                    android:id="@+id/text_already_pay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="20dp"
+                    android:gravity="center"
+                    android:text=""
+                    android:textColor="@color/black"
+                    android:textSize="50sp" />
+            </LinearLayout>
+
+
         </LinearLayout>
     </LinearLayout>
 

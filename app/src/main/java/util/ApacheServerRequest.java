@@ -6,7 +6,7 @@ import datamodel.BasicSetting;
 import datamodel.DayHoliday;
 
 public class ApacheServerRequest {
-    public static final String url = "http://192.168.50.5:8080";
+    public static final String url = "http://192.168.1.200:8080/function.php/";
 
     public static String getUsers() {
         return HTTPGetRequest.get(url, "func=user_search");
@@ -165,4 +165,9 @@ public class ApacheServerRequest {
                 holiday.getSunday(), holiday.getMonday(), holiday.getTuesday(), holiday.getWednesday(),
                 holiday.getThursday(), holiday.getFriday(), holiday.getSaturday()));
     }
+
+    public static String getBase64Picture(String path) {
+        return HTTPGetRequest.get(url, String.format("func=get_car_image&path=%s", path));
+    }
+
 }

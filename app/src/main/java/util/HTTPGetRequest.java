@@ -19,7 +19,7 @@ public class HTTPGetRequest {
 
             // 获取响应码
             int responseCode = connection.getResponseCode();
-            System.out.println("Response Code: " + responseCode);
+//            System.out.println("Response Code: " + responseCode);
 
             // 读取响应内容
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -31,7 +31,7 @@ public class HTTPGetRequest {
             reader.close();
 
             // 打印响应内容
-            System.out.println("Response Body: " + response.toString());
+//            System.out.println("Response Body: " + response.toString());
 
             // 关闭连接
             connection.disconnect();

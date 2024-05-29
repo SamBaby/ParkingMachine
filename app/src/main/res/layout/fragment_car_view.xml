@@ -27,18 +27,21 @@
             android:layout_marginVertical="20dp"
             android:orientation="horizontal">
 
-            <EditText
+            <TextView
+                android:id="@+id/text_car_number"
                 android:layout_width="0dp"
                 android:layout_height="120dp"
                 android:layout_weight="5"
                 android:background="@drawable/input_rounded_corner_background"
-                android:inputType="number"
-                tools:ignore="Autofill,LabelFor" />
+                android:gravity="end|center"
+                android:textAlignment="textEnd"
+                android:textSize="120sp" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button_cancel"
                 android:layout_width="0dp"
                 android:layout_height="110dp"
+                android:layout_gravity="center"
                 android:layout_marginHorizontal="20dp"
                 android:layout_weight="2"
                 android:background="@drawable/clear_button"

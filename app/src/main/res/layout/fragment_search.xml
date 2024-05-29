@@ -35,8 +35,8 @@
                 android:layout_weight="3"
                 android:background="@drawable/input_rounded_corner_background"
                 android:textAlignment="textEnd"
-                android:textSize="130sp"
-                android:textColor="@color/black"></TextView>
+                android:textColor="@color/black"
+                android:textSize="130sp"></TextView>
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button_search"

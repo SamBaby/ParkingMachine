@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Machine</string>
+    <string name="app_name">結帳機台</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="header_title1">都市空間</string>

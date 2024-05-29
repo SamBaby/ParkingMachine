@@ -1,14 +1,17 @@
 package pages;
 
+import android.content.Context;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
-import com.example.machine.R;
+import androidx.fragment.app.Fragment;
+
+import com.android.machine.R;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -61,6 +64,20 @@ public class CarrierFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_carrier, container, false);
+        View root = inflater.inflate(R.layout.fragment_carrier, container, false);
+        EditText editText = root.findViewById(R.id.edittext_carrier);
+        if(getActivity()!= null){
+            editText.requestFocus();
+            editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (hasFocus) {
+                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    }
+                }
+            });
+        }
+        return root;
     }
 }

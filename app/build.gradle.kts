@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.machine"
+    namespace = "com.android.machine"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.machine"
+        applicationId = "com.android.machine"
         minSdk = 21
         targetSdk = 34
         versionCode = 1
@@ -32,12 +32,12 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.gson)
+    implementation(files("libs/d2xx.jar"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
