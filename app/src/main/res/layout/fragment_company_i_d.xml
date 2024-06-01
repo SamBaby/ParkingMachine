@@ -227,6 +227,7 @@
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_carrier"
                 android:layout_width="300dp"
                 android:layout_height="120dp"
                 android:layout_marginHorizontal="120dp"
@@ -236,6 +237,7 @@
                 android:textSize="50sp" />
 
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_print"
                 android:layout_width="300dp"
                 android:layout_height="120dp"
                 android:layout_marginHorizontal="120dp"

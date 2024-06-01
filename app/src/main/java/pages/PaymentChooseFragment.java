@@ -51,7 +51,7 @@ public class PaymentChooseFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
+    private MainViewModel viewModel;
     public PaymentChooseFragment() {
         // Required empty public constructor
     }
@@ -87,12 +87,12 @@ public class PaymentChooseFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_payment_choose, container, false);
         if (getActivity() != null) {
-            MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+            viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             viewModel.getSelectedCars().observe(getViewLifecycleOwner(), this::setCarView);
             viewModel.getTotalMoney().observe(getViewLifecycleOwner(), this::setTotal);
             viewModel.getDiscountMoney().observe(getViewLifecycleOwner(), this::setDiscount);
             viewModel.getShouldPayMoney().observe(getViewLifecycleOwner(), this::setShouldPay);
-
+            viewModel.getTotalPay().observe(getViewLifecycleOwner(), this::setTotalPay);
             ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
             Button btnCancel = root.findViewById(R.id.button_cancel);
             btnCancel.setOnClickListener(v -> viewPager.setCurrentItem(0, true));
@@ -156,6 +156,13 @@ public class PaymentChooseFragment extends Fragment {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void setTotalPay(Integer integer) {
+        if (getView() != null) {
+            TextView text = getView().findViewById(R.id.total);
+            text.setText(String.valueOf(integer));
         }
     }
 
@@ -362,23 +369,23 @@ public class PaymentChooseFragment extends Fragment {
         return false;
     }
 
-    private Bitmap getPictureByPath(String path){
+    private Bitmap getPictureByPath(String path) {
         Var<Bitmap> bitmap = new Var<>();
-        Thread t = new Thread(()->{
+        Thread t = new Thread(() -> {
             try {
                 String base = ApacheServerRequest.getBase64Picture(path);
-                if(base != null){
+                if (base != null) {
                     byte[] bytes = Util.getBase64Decode(base);
                     bitmap.set(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
         try {
             t.start();
             t.join();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return bitmap.get();

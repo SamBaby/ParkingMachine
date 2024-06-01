@@ -2,15 +2,26 @@ package pages;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager.widget.ViewPager;
 
 import com.android.machine.R;
+import com.example.machine.MainViewModel;
+
+import datamodel.ECPayData;
+import ecpay.EcpayFunction;
+import util.Util;
 
 
 /**
@@ -28,6 +39,9 @@ public class CarrierFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private ViewPager viewPager;
+    MainViewModel viewModel;
+    private Handler handler = new Handler();
 
     public CarrierFragment() {
         // Required empty public constructor
@@ -66,7 +80,10 @@ public class CarrierFragment extends Fragment {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_carrier, container, false);
         EditText editText = root.findViewById(R.id.edittext_carrier);
-        if(getActivity()!= null){
+        if (getActivity() != null) {
+            viewPager = getActivity().findViewById(R.id.view_pager);
+            viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+
             editText.requestFocus();
             editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
@@ -77,7 +94,44 @@ public class CarrierFragment extends Fragment {
                     }
                 }
             });
+            editText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (!s.toString().isEmpty()) {
+                        String id = s.toString();
+                        Boolean check = checkCarrierId(id);
+                        if (check) {
+                            viewPager.setCurrentItem(6);
+
+                            // Schedule to change the page to index 0 after 10 seconds
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    viewPager.setCurrentItem(0);
+                                }
+                            }, 5000); // 10000 milliseconds = 10 seconds
+                        } else {
+                            Toast.makeText(getActivity(), getString(R.string.carrier_id_not_found), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            });
         }
         return root;
+    }
+
+    private Boolean checkCarrierId(String id) {
+        ECPayData data = Util.getECPayData();
+        return EcpayFunction.barcodeCheck(data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
     }
 }

@@ -3,14 +3,26 @@ package pages;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager.widget.ViewPager;
 
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.machine.R;
+import com.example.machine.MainViewModel;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import datamodel.ECPayData;
+import ecpay.EcpayFunction;
+import util.Util;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -28,6 +40,8 @@ public class CompanyIDFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private TextView input;
+    ViewPager viewPager;
+    MainViewModel viewModel;
 
     public CompanyIDFragment() {
         // Required empty public constructor
@@ -65,6 +79,10 @@ public class CompanyIDFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_company_i_d, container, false);
+        if (getActivity() != null) {
+            viewPager = getActivity().findViewById(R.id.view_pager);
+            viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+        }
         input = root.findViewById(R.id.input_company_id);
         initButtons(root, input);
         return root;
@@ -122,5 +140,32 @@ public class CompanyIDFragment extends Fragment {
         buttonClear.setOnClickListener(v -> {
             input.setText("");
         });
+        Button buttonCarrier = view.findViewById(R.id.button_carrier);
+        buttonCarrier.setOnClickListener(v -> {
+            String id = input.getText().toString();
+            if (!id.isEmpty()) {
+                Toast.makeText(getActivity(), getString(R.string.company_carrier_not_same_time), Toast.LENGTH_SHORT).show();
+            }
+            viewPager.setCurrentItem(5, true);
+        });
+        Button buttonPrint = view.findViewById(R.id.button_print);
+        buttonPrint.setOnClickListener(v -> {
+            String id = input.getText().toString();
+            boolean idPass = checkCompanyID(id);
+            if (idPass) {
+                ECPayData data = Util.getECPayData();
+                if (data != null) {
+                    EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector().getValue(), viewModel.getInvoiceCxt().getValue(),
+                            data.getMachineID(), data.getCompanyID(), id, null, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                }
+            } else {
+                Toast.makeText(getActivity(), getString(R.string.company_id_not_found), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private boolean checkCompanyID(String id) {
+        ECPayData data = Util.getECPayData();
+        return EcpayFunction.taxIDCheck(data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
     }
 }

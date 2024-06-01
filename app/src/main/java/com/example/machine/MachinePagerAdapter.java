@@ -9,7 +9,7 @@ import pages.CarViewFragment;
 import pages.CarrierFragment;
 import pages.CompanyIDFragment;
 import pages.EndingFragment;
-import pages.PayFragment;
+import pages.CoinPayFragment;
 import pages.PaymentChooseFragment;
 import pages.SearchFragment;
 
@@ -30,7 +30,7 @@ public class MachinePagerAdapter extends FragmentPagerAdapter {
             case 2:
                 return new PaymentChooseFragment();
             case 3:
-                return new PayFragment();
+                return new CoinPayFragment();
             case 4:
                 return new CompanyIDFragment();
             case 5:

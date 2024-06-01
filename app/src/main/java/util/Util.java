@@ -8,6 +8,9 @@ import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +24,9 @@ import java.util.UUID;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import datamodel.ECPayData;
+import event.Var;
 
 public class Util {
     private static String algorithm = "AES/CBC/PKCS7Padding";
@@ -238,4 +244,32 @@ public class Util {
         }
         return b;
     }
+
+    public static ECPayData getECPayData() {
+        Var<ECPayData> data = new Var<>();
+        Thread t = new Thread(() -> {
+            try {
+                String json = ApacheServerRequest.getECPay();
+                JSONArray array = new JSONArray(json);
+                if (array.length() > 0) {
+                    for (int i = 0; i < 1; i++) {
+                        JSONObject obj = array.getJSONObject(i);
+                        data.set(new ECPayData(obj.getInt("print_status"), obj.getInt("plus_car_number"), obj.getString("merchant_id"),
+                                obj.getString("company_id"), obj.getString("hash_key"), obj.getString("hash_iv"), obj.getString("machine_id")));
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return data.get();
+    }
+
 }

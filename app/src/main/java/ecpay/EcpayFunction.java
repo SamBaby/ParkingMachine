@@ -59,7 +59,7 @@ import usb.UsbConnector;
  * @author mark.chiu
  */
 public class EcpayFunction {
-    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    private static final String algorithm = "AES/CBC/PKCS7Padding";
 
     public static String httpPost(String url, String urlParameters, String encoding) {
         try {
@@ -471,7 +471,7 @@ public class EcpayFunction {
         return false;
     }
 
-    public void invoiceIssueOffline(Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID,int amount, String algorithm, String key, String IV) {
+    public static void invoiceIssueOffline(Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID, int amount, String key, String IV) {
         new Thread(() -> {
             Var<String> invoiceNo = new Var<>();
             Var<String> invoiceDate = new Var<>();
@@ -770,5 +770,85 @@ public class EcpayFunction {
 
             return imgbuf;
         }
+    }
+
+    public static boolean taxIDCheck(String merchantID, String key, String IV, String taxID) {
+        Var<Boolean> ret = new Var<>(false);
+        Thread t = new Thread(() -> {
+            long unixTime = System.currentTimeMillis() / 1000L;
+            EnvoiceJson json = new EnvoiceJson();
+            RqHeader header = new RqHeader();
+            header.setTimestamp(unixTime);
+            TaxIDCheckJson data = new TaxIDCheckJson();
+            data.setMerchantID(merchantID);
+            data.setUnifiedBusinessNo(taxID);
+            json.MerchantID = merchantID;
+            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            json.RqHeader = header;
+            String dataString = gson.toJson(data);
+            json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
+            String jsonText = gson.toJson(json);
+            System.out.println(jsonText);
+
+            try {
+                String res = EcpayFunction.httpPost("https://einvoice-stage.ecpay.com.tw/B2CInvoice/GetCompanyNameByTaxID", jsonText, "UTF-8");
+                if (res != null) {
+                    JSONObject resJson = new JSONObject(res);
+                    JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(resJson.getString("Data"), algorithm, key, IV));
+                    if(returnData.getInt("RtnCode") == 1){
+                        ret.set(true);
+                    }
+                }
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
+        });
+        try{
+            t.start();
+            t.join();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ret.get();
+    }
+
+    public static boolean barcodeCheck(String merchantID, String key, String IV, String barcode) {
+        Var<Boolean> ret = new Var<>(false);
+        Thread t = new Thread(() -> {
+            long unixTime = System.currentTimeMillis() / 1000L;
+            EnvoiceJson json = new EnvoiceJson();
+            RqHeader header = new RqHeader();
+            header.setTimestamp(unixTime);
+            BarcodeCheckJson data = new BarcodeCheckJson();
+            data.setMerchantID(merchantID);
+            data.setBarCode(barcode);
+            json.MerchantID = merchantID;
+            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            json.RqHeader = header;
+            String dataString = gson.toJson(data);
+            json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
+            String jsonText = gson.toJson(json);
+            System.out.println(jsonText);
+
+            try {
+                String res = EcpayFunction.httpPost("https://einvoice-stage.ecpay.com.tw/B2CInvoice/CheckBarcode", jsonText, "UTF-8");
+                if (res != null) {
+                    JSONObject resObj = new JSONObject(res);
+                    JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(resObj.getString("Data"), algorithm, key, IV));
+                    if(returnData.getInt("RtnCode") == 1 && "Y".equals(returnData.getString("IsExist"))){
+                        ret.set(true);
+                    }
+                }
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
+        });
+        try{
+            t.start();
+            t.join();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ret.get();
     }
 }
