@@ -20,15 +20,16 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<Integer> totalMoney = new MutableLiveData<>(0);
     private final MutableLiveData<Integer> payWay = new MutableLiveData<>(0);
     private final MutableLiveData<String> payTime = new MutableLiveData<>();
-    private final MutableLiveData<FT_Device> coinInputDevice = new MutableLiveData<>();
-    private final MutableLiveData<FT_Device> paperInputDevice = new MutableLiveData<>();
-    private final MutableLiveData<FT_Device> coin10Device = new MutableLiveData<>();
-    private final MutableLiveData<FT_Device> coin50Device = new MutableLiveData<>();
+    private FT_Device coinInputDevice;
+    private FT_Device paperInputDevice;
+    private FT_Device coin10Device;
+    private FT_Device coin50Device;
     private final MutableLiveData<Integer> totalPay = new MutableLiveData<>(0);
     private final MutableLiveData<android.os.Handler> changePageHandler = new MutableLiveData<>(new android.os.Handler());
     private final MutableLiveData<Runnable> changePageRunnable = new MutableLiveData<>();
-    private final MutableLiveData<UsbConnector> invoiceConnector = new MutableLiveData<>();
-    private final MutableLiveData<UsbConnectionContext> invoiceCxt = new MutableLiveData<>();
+    private UsbConnector invoiceConnector;
+    private UsbConnectionContext invoiceCxt;
+
     public MutableLiveData<Vector<CarInside>> getCars() {
         return cars;
     }
@@ -98,40 +99,40 @@ public class MainViewModel extends ViewModel {
         }
     }
 
-    public MutableLiveData<FT_Device> getCoinInputDevice() {
+    public FT_Device getCoinInputDevice() {
         return coinInputDevice;
     }
 
-    public MutableLiveData<FT_Device> getPaperInputDevice() {
+    public FT_Device getPaperInputDevice() {
         return paperInputDevice;
     }
 
 
-    public MutableLiveData<FT_Device> getCoin10Device() {
+    public FT_Device getCoin10Device() {
         return coin10Device;
     }
 
-    public MutableLiveData<FT_Device> getCoin50Device() {
+    public FT_Device getCoin50Device() {
         return coin50Device;
     }
 
     public void setCoinInputDevice(FT_Device device) {
-        this.coinInputDevice.postValue(device);
+        this.coinInputDevice = device;
         readCoinInput();
     }
 
     public void setPaperInputDevice(FT_Device device) {
-        this.paperInputDevice.postValue(device);
+        this.paperInputDevice = device;
         readPaperInput();
     }
 
     public void setCoin10Device(FT_Device device) {
-        this.coin10Device.postValue(device);
+        this.coin10Device = device;
         read10Input();
     }
 
     public void setCoin50Device(FT_Device device) {
-        this.coin50Device.postValue(device);
+        this.coin50Device = device;
         read50Input();
     }
 
@@ -159,20 +160,20 @@ public class MainViewModel extends ViewModel {
 
 
     private void setCoinInputEnable() {
-        coinInputDevice.getValue().write(enableCoinInput, enableCoinInput.length);
+        coinInputDevice.write(enableCoinInput, enableCoinInput.length);
     }
 
     private void setCoinInputDisable() {
-        coinInputDevice.getValue().write(disableCoinInput);
+        coinInputDevice.write(disableCoinInput);
     }
 
     private void setPaperEnable() {
-        paperInputDevice.getValue().write(enablePaperInput);
-        paperInputDevice.getValue().write(checkPaperStatus);
+        paperInputDevice.write(enablePaperInput);
+        paperInputDevice.write(checkPaperStatus);
     }
 
     private void setPaperDisable() {
-        paperInputDevice.getValue().write(disablePaperInput);
+        paperInputDevice.write(disablePaperInput);
     }
 
     private void readCoinInput() {
@@ -185,12 +186,12 @@ public class MainViewModel extends ViewModel {
                 }
 
                 // readData = new byte[readLength];
-                int len = coinInputDevice.getValue().getQueueStatus();
+                int len = coinInputDevice.getQueueStatus();
                 if (startCoinPay) {
                     if (coinReady) {
                         byte[] data = new byte[6];
                         if (len >= 6) {
-                            coinInputDevice.getValue().read(data, 6);
+                            coinInputDevice.read(data, 6);
                             if (Arrays.equals(data, getCoin5)) {
                                 getTotalPay().postValue(getTotalPay().getValue() + 5);
                             } else if (Arrays.equals(data, getCoin10)) {
@@ -202,14 +203,14 @@ public class MainViewModel extends ViewModel {
                     } else {
                         byte[] data = new byte[5];
                         if (len >= 5) {
-                            coinInputDevice.getValue().read(data, 5);
+                            coinInputDevice.read(data, 5);
                             if (Arrays.equals(enableCoinInputSuccess, data)) {
                                 coinReady = true;
                             }
                         }
                     }
                 } else if (len > 0) {
-                    coinInputDevice.getValue().read(new byte[len], len);
+                    coinInputDevice.read(new byte[len], len);
                 }
 
             }
@@ -225,30 +226,30 @@ public class MainViewModel extends ViewModel {
                     e.printStackTrace();
                 }
 
-                int len = paperInputDevice.getValue().getQueueStatus();
+                int len = paperInputDevice.getQueueStatus();
                 byte[] data = new byte[1];
                 if (len >= 1) {
-                    paperInputDevice.getValue().read(data, 1);
+                    paperInputDevice.read(data, 1);
                     if (Arrays.equals(data, new byte[]{(byte) 0x80})) {
                         len = 0;
                         while (len <= 0) {
-                            len = paperInputDevice.getValue().getQueueStatus();
+                            len = paperInputDevice.getQueueStatus();
                         }
-                        paperInputDevice.getValue().read(data, 1);
+                        paperInputDevice.read(data, 1);
                         if (Arrays.equals(data, new byte[]{(byte) 0x8F})) {
-                            paperInputDevice.getValue().write(paperPowerReply);
+                            paperInputDevice.write(paperPowerReply);
                         }
                     } else if (Arrays.equals(data, new byte[]{(byte) 0x81})) {
                         len = 0;
                         while (len <= 0) {
-                            len = paperInputDevice.getValue().getQueueStatus();
+                            len = paperInputDevice.getQueueStatus();
                         }
-                        paperInputDevice.getValue().read(data, 1);
+                        paperInputDevice.read(data, 1);
                         if (Arrays.equals(data, new byte[]{(byte) 0x40}) && paperReady) {
-                            paperInputDevice.getValue().write(getPaperConfirm);
+                            paperInputDevice.write(getPaperConfirm);
                             getTotalPay().postValue(getTotalPay().getValue() + 100);
                         } else {
-                            paperInputDevice.getValue().write(getPaperReject);
+                            paperInputDevice.write(getPaperReject);
                         }
                     } else if (Arrays.equals(data, new byte[]{(byte) 0x3E})) {
                         paperReady = true;
@@ -268,14 +269,14 @@ public class MainViewModel extends ViewModel {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                int len = coin10Device.getValue().getQueueStatus();
+                int len = coin10Device.getQueueStatus();
                 if (len > 0) {
                     byte[] data = new byte[1];
-                    coin10Device.getValue().read(data, 1);
+                    coin10Device.read(data, 1);
                     if (Arrays.equals(data, new byte[]{0x02})) {
-                        coin10Device.getValue().write(new byte[]{0x10});
+                        coin10Device.write(new byte[]{0x10});
                     } else {
-                        coin10Device.getValue().write(new byte[]{0x11});
+                        coin10Device.write(new byte[]{0x11});
                     }
                 }
 
@@ -291,14 +292,14 @@ public class MainViewModel extends ViewModel {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                int len = coin50Device.getValue().getQueueStatus();
+                int len = coin50Device.getQueueStatus();
                 if (len > 0) {
                     byte[] data = new byte[1];
-                    coin50Device.getValue().read(data, 1);
+                    coin50Device.read(data, 1);
                     if (Arrays.equals(data, new byte[]{0x02})) {
-                        coin50Device.getValue().write(new byte[]{0x10});
+                        coin50Device.write(new byte[]{0x10});
                     } else {
-                        coin50Device.getValue().write(new byte[]{0x11});
+                        coin50Device.write(new byte[]{0x11});
                     }
                 }
 
@@ -318,19 +319,99 @@ public class MainViewModel extends ViewModel {
         return changePageRunnable;
     }
 
-    public MutableLiveData<UsbConnector> getInvoiceConnector() {
+    public UsbConnector getInvoiceConnector() {
         return invoiceConnector;
     }
 
-    public MutableLiveData<UsbConnectionContext> getInvoiceCxt() {
+    public UsbConnectionContext getInvoiceCxt() {
         return invoiceCxt;
     }
 
-    public void setInvoiceConnector(UsbConnector connector){
-        this.invoiceConnector.postValue(connector);
+    public void setInvoiceConnector(UsbConnector connector) {
+        this.invoiceConnector = connector;
     }
 
-    public void setInvoiceCxt(UsbConnectionContext cxt){
-        this.invoiceCxt.postValue(cxt);
+    public void setInvoiceCxt(UsbConnectionContext cxt) {
+        this.invoiceCxt = cxt;
+    }
+
+    public void refund10Coin1() {
+        coin10Device.write(new byte[]{(byte) 0x81});
+        coin10Device.write(new byte[]{0x40});
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void refund10Coin2() {
+        coin10Device.write(new byte[]{(byte) 0x81});
+        coin10Device.write(new byte[]{0x41});
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void refund10Coin5() {
+        coin10Device.write(new byte[]{(byte) 0x81});
+        coin10Device.write(new byte[]{0x42});
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void refund10Coin10() {
+        coin10Device.write(new byte[]{(byte) 0x81});
+        coin10Device.write(new byte[]{0x43});
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void refund50Coin1() {
+        coin10Device.write(new byte[]{(byte) 0x81});
+        coin10Device.write(new byte[]{0x40});
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void refund50Coin2() {
+        coin10Device.write(new byte[]{(byte) 0x81});
+        coin10Device.write(new byte[]{0x41});
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void refund50Coin5() {
+        coin10Device.write(new byte[]{(byte) 0x81});
+        coin10Device.write(new byte[]{0x42});
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void refund50Coin10() {
+        coin10Device.write(new byte[]{(byte) 0x81});
+        coin10Device.write(new byte[]{0x43});
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

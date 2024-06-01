@@ -534,7 +534,7 @@ public class EcpayFunction {
                         JSONObject ret = new JSONObject(res);
                         if (!ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
                             JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
-                            if (returnData.getInt("RtnCode") == 1) {
+                            if (returnData.getInt("RtnCode") == 1 && carrierID != null) {
                                 invoiceNo.set(returnData.getString("InvoiceNo"));
                                 invoiceDate.set(currentDate.split(" ")[0]);
                                 invoicePrint(activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
@@ -795,7 +795,7 @@ public class EcpayFunction {
                 if (res != null) {
                     JSONObject resJson = new JSONObject(res);
                     JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(resJson.getString("Data"), algorithm, key, IV));
-                    if(returnData.getInt("RtnCode") == 1){
+                    if (returnData.getInt("RtnCode") == 1) {
                         ret.set(true);
                     }
                 }
@@ -803,10 +803,10 @@ public class EcpayFunction {
                 ee.printStackTrace();
             }
         });
-        try{
+        try {
             t.start();
             t.join();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return ret.get();
@@ -835,7 +835,7 @@ public class EcpayFunction {
                 if (res != null) {
                     JSONObject resObj = new JSONObject(res);
                     JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(resObj.getString("Data"), algorithm, key, IV));
-                    if(returnData.getInt("RtnCode") == 1 && "Y".equals(returnData.getString("IsExist"))){
+                    if (returnData.getInt("RtnCode") == 1 && "Y".equals(returnData.getString("IsExist"))) {
                         ret.set(true);
                     }
                 }
@@ -843,10 +843,10 @@ public class EcpayFunction {
                 ee.printStackTrace();
             }
         });
-        try{
+        try {
             t.start();
             t.join();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return ret.get();

@@ -23,6 +23,8 @@ import com.ftdi.j2xx.FT_Device;
 import java.util.TimerTask;
 
 import ecpay.EcpayFunction;
+import usb.UsbConnectionContext;
+import usb.UsbConnector;
 
 public class MainActivity extends AppCompatActivity {
     private MainViewModel model;
@@ -31,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private FT_Device paperInputDevice;
     private FT_Device coin50Device;
     private FT_Device coin10Device;
+    private UsbConnector printConnector;
+    private UsbConnectionContext printCxt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,14 +50,21 @@ public class MainActivity extends AppCompatActivity {
         MachinePagerAdapter adapter = new MachinePagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
         model = new ViewModelProvider(this).get(MainViewModel.class);
-//        try {
-//            coinInputManager = D2xxManager.getInstance(this);
-//            handleFT4232H(coinInputManager);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-        EcpayFunction.taxIDCheck("2000132", "ejCk326UnaZWKisg", "q9jcZX8Ib9LM8wYk", "90895303");
-        EcpayFunction.barcodeCheck("2000132", "ejCk326UnaZWKisg", "q9jcZX8Ib9LM8wYk", "/V4AZ44S");
+        try {
+            coinInputManager = D2xxManager.getInstance(this);
+            handleFT4232H(coinInputManager);
+            handlePrintMachine();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void handlePrintMachine() {
+        printConnector = new UsbConnector(this);
+        printCxt = printConnector.ConnectUsb(0, 0, 0, 0);
+        model.setInvoiceConnector(printConnector);
+        model.setInvoiceCxt(printCxt);
     }
 
     private void handleFT4232H(D2xxManager manager) {
@@ -74,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
             initRefund(coin50Device);
         }
     }
+
     private void setCoinMachineConfig(FT_Device ftDev) {
         ftDev.setBaudRate(9600);
         ftDev.setDataCharacteristics(D2xxManager.FT_DATA_BITS_8, D2xxManager.FT_STOP_BITS_1, D2xxManager.FT_PARITY_NONE);
@@ -85,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         ftDev.setDataCharacteristics(D2xxManager.FT_DATA_BITS_8, D2xxManager.FT_STOP_BITS_1, D2xxManager.FT_PARITY_EVEN);
         ftDev.setFlowControl(D2xxManager.FT_FLOW_NONE, (byte) 0x00, (byte) 0x00);
     }
+
     private void initRefund(FT_Device ftDev) {
         ftDev.write(new byte[]{(byte) 0x80});
     }

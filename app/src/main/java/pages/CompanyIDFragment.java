@@ -1,12 +1,6 @@
 package pages;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.viewpager.widget.ViewPager;
-
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,11 +8,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager.widget.ViewPager;
+
 import com.android.machine.R;
 import com.example.machine.MainViewModel;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import datamodel.ECPayData;
 import ecpay.EcpayFunction;
@@ -145,8 +140,10 @@ public class CompanyIDFragment extends Fragment {
             String id = input.getText().toString();
             if (!id.isEmpty()) {
                 Toast.makeText(getActivity(), getString(R.string.company_carrier_not_same_time), Toast.LENGTH_SHORT).show();
+            } else {
+                viewPager.setCurrentItem(5, true);
+                input.setText("");
             }
-            viewPager.setCurrentItem(5, true);
         });
         Button buttonPrint = view.findViewById(R.id.button_print);
         buttonPrint.setOnClickListener(v -> {
@@ -155,11 +152,13 @@ public class CompanyIDFragment extends Fragment {
             if (idPass) {
                 ECPayData data = Util.getECPayData();
                 if (data != null) {
-                    EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector().getValue(), viewModel.getInvoiceCxt().getValue(),
+                    EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
                             data.getMachineID(), data.getCompanyID(), id, null, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                    input.setText("");
                 }
             } else {
                 Toast.makeText(getActivity(), getString(R.string.company_id_not_found), Toast.LENGTH_SHORT).show();
+                input.setText("");
             }
         });
     }

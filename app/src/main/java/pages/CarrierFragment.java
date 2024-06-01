@@ -111,6 +111,7 @@ public class CarrierFragment extends Fragment {
                         String id = s.toString();
                         Boolean check = checkCarrierId(id);
                         if (check) {
+                            editText.setText("");
                             viewPager.setCurrentItem(6);
 
                             // Schedule to change the page to index 0 after 10 seconds
@@ -122,6 +123,7 @@ public class CarrierFragment extends Fragment {
                             }, 5000); // 10000 milliseconds = 10 seconds
                         } else {
                             Toast.makeText(getActivity(), getString(R.string.carrier_id_not_found), Toast.LENGTH_SHORT).show();
+                            editText.setText("");
                         }
                     }
                 }
