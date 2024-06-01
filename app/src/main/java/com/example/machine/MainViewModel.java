@@ -339,7 +339,7 @@ public class MainViewModel extends ViewModel {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x40});
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -349,7 +349,7 @@ public class MainViewModel extends ViewModel {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x41});
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -359,7 +359,7 @@ public class MainViewModel extends ViewModel {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x42});
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -369,7 +369,7 @@ public class MainViewModel extends ViewModel {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x43});
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -379,7 +379,7 @@ public class MainViewModel extends ViewModel {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x40});
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -389,7 +389,7 @@ public class MainViewModel extends ViewModel {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x41});
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -399,7 +399,7 @@ public class MainViewModel extends ViewModel {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x42});
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -409,7 +409,7 @@ public class MainViewModel extends ViewModel {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x43});
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

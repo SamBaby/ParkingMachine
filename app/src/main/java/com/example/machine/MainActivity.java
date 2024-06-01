@@ -57,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private void handlePrintMachine() {
@@ -83,6 +82,11 @@ public class MainActivity extends AppCompatActivity {
             coin50Device = manager.openByIndex(this, 3);
             setPaperMachineConfig(coin50Device);
             initRefund(coin50Device);
+
+            model.setCoinInputDevice(coinInputDevice);
+            model.setPaperInputDevice(paperInputDevice);
+            model.setCoin10Device(coin10Device);
+            model.setCoin50Device(coin50Device);
         }
     }
 
