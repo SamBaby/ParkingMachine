@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -19,8 +20,10 @@ import androidx.viewpager.widget.ViewPager;
 import com.android.machine.R;
 import com.example.machine.MainViewModel;
 
+import datamodel.CarInside;
 import datamodel.ECPayData;
 import ecpay.EcpayFunction;
+import util.ApacheServerRequest;
 import util.Util;
 
 
@@ -83,7 +86,8 @@ public class CarrierFragment extends Fragment {
         if (getActivity() != null) {
             viewPager = getActivity().findViewById(R.id.view_pager);
             viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
-
+            Button previousBtn = root.findViewById(R.id.button_previous);
+            previousBtn.setOnClickListener(v -> viewPager.setCurrentItem(4));
             editText.requestFocus();
             editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
@@ -111,9 +115,17 @@ public class CarrierFragment extends Fragment {
                         String id = s.toString();
                         Boolean check = checkCarrierId(id);
                         if (check) {
+                            ECPayData data = Util.getECPayData();
+                            String number = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                                    data.getMerchantID(),data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                            CarInside car = viewModel.getSelectedCars().getValue();
+                            new Thread(() -> {
+                                ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                                        viewModel.getDiscountMoney().getValue(), number, "A");
+                            }).start();
                             editText.setText("");
+                            viewModel.setSelectedCars(null);
                             viewPager.setCurrentItem(6);
-
                             // Schedule to change the page to index 0 after 10 seconds
                             handler.postDelayed(new Runnable() {
                                 @Override

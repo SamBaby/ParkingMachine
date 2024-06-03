@@ -158,6 +158,54 @@ public class MainViewModel extends ViewModel {
     private boolean startEZPay = false;
     private boolean startLinePay = false;
 
+    public boolean isStartCoinPay() {
+        return startCoinPay;
+    }
+
+    public void stopCoinPay() {
+        setCoinInputDisable();
+        setPaperDisable();
+        startCoinPay = false;
+        coinReady = false;
+        paperReady = false;
+
+        //check refund
+        int refund = totalPay.getValue() - totalMoney.getValue();
+        if (refund > 0) {
+            int fifty = refund / 50;
+            while (fifty > 0) {
+                if (fifty >= 10) {
+                    fifty -= 10;
+                    refund50Coin10();
+                } else if (fifty >= 5) {
+                    fifty -= 5;
+                    refund50Coin5();
+                } else if (fifty >= 2) {
+                    fifty -= 2;
+                    refund50Coin2();
+                } else {
+                    fifty -= 1;
+                    refund50Coin1();
+                }
+            }
+            int ten = refund % 50 / 10;
+            while (ten > 0) {
+                if (ten >= 10) {
+                    ten -= 10;
+                    refund10Coin10();
+                } else if (ten >= 5) {
+                    ten -= 5;
+                    refund10Coin5();
+                } else if (ten >= 2) {
+                    ten -= 2;
+                    refund10Coin2();
+                } else {
+                    ten -= 1;
+                    refund10Coin1();
+                }
+            }
+        }
+    }
 
     private void setCoinInputEnable() {
         coinInputDevice.write(enableCoinInput, enableCoinInput.length);
@@ -311,6 +359,10 @@ public class MainViewModel extends ViewModel {
         return totalPay;
     }
 
+    public void resetTotalPay() {
+        totalPay.postValue(0);
+    }
+
     public MutableLiveData<android.os.Handler> getChangePageHandler() {
         return changePageHandler;
     }
@@ -406,8 +458,8 @@ public class MainViewModel extends ViewModel {
     }
 
     public void refund50Coin10() {
-        coin10Device.write(new byte[]{(byte) 0x81});
-        coin10Device.write(new byte[]{0x43});
+        coin50Device.write(new byte[]{(byte) 0x81});
+        coin50Device.write(new byte[]{0x43});
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {

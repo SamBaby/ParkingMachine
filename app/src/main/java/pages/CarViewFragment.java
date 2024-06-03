@@ -103,12 +103,6 @@ public class CarViewFragment extends Fragment {
             MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             viewModel.getCars().observe(getViewLifecycleOwner(), this::setCarView);
         }
-        ImageView image = root.findViewById(R.id.image_car1);
-        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/cars/EAH5678.png";
-        Bitmap bitmap = BitmapFactory.decodeFile(path);
-        if (bitmap != null) {
-            image.setImageBitmap(bitmap);
-        }
         return root;
     }
 
@@ -289,6 +283,7 @@ public class CarViewFragment extends Fragment {
                 if (getActivity() != null) {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
+                    viewModel.resetTotalPay();
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                     viewPager.setCurrentItem(2, true);
                 }

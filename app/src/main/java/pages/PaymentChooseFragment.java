@@ -52,6 +52,7 @@ public class PaymentChooseFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private MainViewModel viewModel;
+
     public PaymentChooseFragment() {
         // Required empty public constructor
     }
@@ -92,25 +93,27 @@ public class PaymentChooseFragment extends Fragment {
             viewModel.getTotalMoney().observe(getViewLifecycleOwner(), this::setTotal);
             viewModel.getDiscountMoney().observe(getViewLifecycleOwner(), this::setDiscount);
             viewModel.getShouldPayMoney().observe(getViewLifecycleOwner(), this::setShouldPay);
-            viewModel.getTotalPay().observe(getViewLifecycleOwner(), this::setTotalPay);
             ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
             Button btnCancel = root.findViewById(R.id.button_cancel);
-            btnCancel.setOnClickListener(v -> viewPager.setCurrentItem(0, true));
+            btnCancel.setOnClickListener(v -> {
+                viewModel.setSelectedCars(null);
+                viewPager.setCurrentItem(0, true);
+            });
 
             Button btnCash = root.findViewById(R.id.button_cash);
             Button btnEZPay = root.findViewById(R.id.button_ezpay);
             Button btnLinePay = root.findViewById(R.id.button_linepay);
             btnCash.setOnClickListener(v -> {
                 viewModel.setPayWay(0);
-                viewPager.setCurrentItem(2, true);
+                viewPager.setCurrentItem(3, true);
             });
             btnEZPay.setOnClickListener(v -> {
                 viewModel.setPayWay(1);
-                viewPager.setCurrentItem(2, true);
+                viewPager.setCurrentItem(3, true);
             });
             btnLinePay.setOnClickListener(v -> {
                 viewModel.setPayWay(2);
-                viewPager.setCurrentItem(2, true);
+                viewPager.setCurrentItem(3, true);
             });
         }
 
@@ -139,16 +142,17 @@ public class PaymentChooseFragment extends Fragment {
             Date nowDate = new Date();
             String nowString = format.format(nowDate);
             timeOut.setText(String.format("%s %s", getResources().getString(R.string.exit_time), nowString));
-            car.setTime_pay(nowString);
             //calculate money
             try {
                 Date timeInDate = (car.getTime_pay() != null && !car.getTime_pay().isEmpty()) ? format.parse(car.getTime_pay()) : format.parse(car.getTime_in());
+//                Date timeInDate = format.parse(car.getTime_in());
                 if (timeInDate != null) {
                     int totalMoney = calculateFee(timeInDate, nowDate);
                     if (getActivity() != null) {
                         MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                         viewModel.setTotalMoney(totalMoney);
                         viewModel.setDiscountMoney(car.getDiscount());
+                        viewModel.setPayTime(nowString);
                         int shouldPay = totalMoney - car.getDiscount();
                         viewModel.setShouldPayMoney(Math.max(shouldPay, 0));
                     }
@@ -159,17 +163,10 @@ public class PaymentChooseFragment extends Fragment {
         }
     }
 
-    private void setTotalPay(Integer integer) {
-        if (getView() != null) {
-            TextView text = getView().findViewById(R.id.total);
-            text.setText(String.valueOf(integer));
-        }
-    }
-
     private void setTotal(int amount) {
         if (getView() != null) {
             TextView text = getView().findViewById(R.id.total);
-            text.setText(String.valueOf(amount));
+            text.setText(String.format("%s:%s", getString(R.string.total_count), String.valueOf(amount)));
         }
 
     }
@@ -177,14 +174,14 @@ public class PaymentChooseFragment extends Fragment {
     private void setShouldPay(int amount) {
         if (getView() != null) {
             TextView text = getView().findViewById(R.id.should_pay);
-            text.setText(String.valueOf(amount));
+            text.setText(String.format("%s:%s", getString(R.string.end_count), String.valueOf(amount)));
         }
     }
 
     private void setDiscount(int amount) {
         if (getView() != null) {
             TextView text = getView().findViewById(R.id.discount);
-            text.setText(String.valueOf(amount));
+            text.setText(String.format("%s:%s", getString(R.string.discount_count), String.valueOf(amount)));
         }
     }
 
@@ -296,7 +293,7 @@ public class PaymentChooseFragment extends Fragment {
             return 0;
         }
 
-        long totalDurationInDays = durationInMillis / (1000 * 60 * 60 * 24);
+        long totalDurationInDays = Util.daysBetween(startDate, endDate);
         if (totalDurationInDays > 0) {
             for (int i = 0; i <= totalDurationInDays; i++) {
                 if (i == 0) {

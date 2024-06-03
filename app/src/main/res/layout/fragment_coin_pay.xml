@@ -14,7 +14,7 @@
         android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="20dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,7 +29,7 @@
 
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="700dp"
+                android:layout_height="400dp"
                 android:layout_weight="2"
                 android:orientation="vertical">
 
@@ -46,7 +46,7 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:text="@string/entrance_time"
-                    android:textSize="40sp" />
+                    android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/time_out"
@@ -54,7 +54,7 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:text="@string/exit_time"
-                    android:textSize="40sp" />
+                    android:textSize="20sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -69,7 +69,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="20dp"
                     android:text="@string/car_number"
-                    android:textSize="40sp" />
+                    android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/total"
@@ -77,7 +77,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="40dp"
                     android:text="@string/total_count"
-                    android:textSize="40sp" />
+                    android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/discount"
@@ -85,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="20dp"
                     android:text="@string/discount_count"
-                    android:textSize="40sp" />
+                    android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/should_pay"
@@ -93,29 +93,30 @@
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="20dp"
                     android:text="@string/end_count"
-                    android:textSize="40sp" />
+                    android:textSize="20sp" />
 
                 <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/cancel_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="120dp"
+                    android:layout_marginTop="0dp"
                     android:background="@drawable/clear_button"
                     android:padding="10dp"
                     android:text="@string/cancel"
                     android:textColor="@color/white"
-                    android:textSize="50sp" />
+                    android:textSize="25sp" />
             </LinearLayout>
         </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="60dp"
+            android:layout_marginVertical="20dp"
             android:gravity="center"
             android:text="@string/pay_instruction"
             android:textColor="@color/yellow"
-            android:textSize="40sp" />
+            android:textSize="30sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -123,7 +124,7 @@
             android:layout_marginHorizontal="100dp"
             android:background="@drawable/light_gery_background"
             android:orientation="vertical"
-            android:padding="60dp">
+            android:padding="20dp">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -131,20 +132,20 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="20dp"
+                    android:layout_marginVertical="10dp"
                     android:gravity="center"
                     android:text="@string/total_pay"
                     android:textColor="@color/black"
-                    android:textSize="50sp" />
+                    android:textSize="40sp" />
                 <TextView
                     android:id="@+id/text_total"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="20dp"
+                    android:layout_marginVertical="10dp"
                     android:gravity="center"
                     android:text=""
                     android:textColor="@color/black"
-                    android:textSize="50sp" />
+                    android:textSize="40sp" />
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -153,20 +154,20 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="20dp"
+                    android:layout_marginVertical="10dp"
                     android:gravity="center"
                     android:text="@string/should_pay"
                     android:textColor="@color/black"
-                    android:textSize="50sp" />
+                    android:textSize="40sp" />
                 <TextView
                     android:id="@+id/text_should_pay"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="20dp"
+                    android:layout_marginVertical="10dp"
                     android:gravity="center"
                     android:text=""
                     android:textColor="@color/black"
-                    android:textSize="50sp" />
+                    android:textSize="40sp" />
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -175,20 +176,20 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="20dp"
+                    android:layout_marginVertical="10dp"
                     android:gravity="center"
                     android:text="@string/already_pay"
                     android:textColor="@color/black"
-                    android:textSize="50sp" />
+                    android:textSize="40sp" />
                 <TextView
                     android:id="@+id/text_already_pay"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="20dp"
+                    android:layout_marginVertical="10dp"
                     android:gravity="center"
                     android:text=""
                     android:textColor="@color/black"
-                    android:textSize="50sp" />
+                    android:textSize="40sp" />
             </LinearLayout>
 
 

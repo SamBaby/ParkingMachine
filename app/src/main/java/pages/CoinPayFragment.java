@@ -12,12 +12,16 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.machine.MainViewModel;
 import com.android.machine.R;
 import com.ftdi.j2xx.FT_Device;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import datamodel.CarInside;
 import event.Var;
@@ -39,6 +43,7 @@ public class CoinPayFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
     public CoinPayFragment() {
         // Required empty public constructor
     }
@@ -69,7 +74,9 @@ public class CoinPayFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
+
     MainViewModel viewModel;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -83,7 +90,15 @@ public class CoinPayFragment extends Fragment {
             viewModel.getPayTime().observe(getViewLifecycleOwner(), this::setPayTime);
             viewModel.getPayWay().observe(getViewLifecycleOwner(), this::startPay);
             viewModel.getTotalPay().observe(getViewLifecycleOwner(), this::refreshTotalPay);
+            Button cancelBtn = root.findViewById(R.id.cancel_button);
+            cancelBtn.setOnClickListener(v -> {
+                viewModel.setSelectedCars(null);
+                viewModel.stopCoinPay();
+                ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
+                viewPager.setCurrentItem(0, true);
+            });
         }
+
         return root;
     }
 
@@ -92,6 +107,7 @@ public class CoinPayFragment extends Fragment {
             ImageView image = getView().findViewById(R.id.image_car);
             TextView carNumber = getView().findViewById(R.id.car_number);
             TextView timeIn = getView().findViewById(R.id.time_in);
+            TextView timeOut = getView().findViewById(R.id.time_out);
             //set image
             try {
                 String url = car.getPicture_url();
@@ -103,14 +119,18 @@ public class CoinPayFragment extends Fragment {
             carNumber.setText(car.getCar_number());
             //set time in
             timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
+
+            timeOut.setText(String.format("%s %s", getResources().getString(R.string.exit_time), viewModel.getPayTime()));
         }
     }
+
     private void refreshTotalPay(Integer integer) {
         if (getView() != null) {
             TextView text = getView().findViewById(R.id.text_already_pay);
             text.setText(String.valueOf(integer));
-            if(integer >= viewModel.getTotalMoney().getValue()){
-                if(getActivity() != null){
+            if (viewModel.isStartCoinPay() && integer >= viewModel.getTotalMoney().getValue()) {
+                if (getActivity() != null) {
+                    viewModel.stopCoinPay();
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                     viewPager.setCurrentItem(4, true);
                 }
@@ -121,7 +141,10 @@ public class CoinPayFragment extends Fragment {
     private void setTotal(int amount) {
         if (getView() != null) {
             TextView text = getView().findViewById(R.id.total);
-            text.setText(String.valueOf(amount));
+            text.setText(String.format("%s:%s", getString(R.string.total_count), String.valueOf(amount)));
+
+            TextView bigText = getView().findViewById(R.id.text_total);
+            bigText.setText(String.format(String.valueOf(amount)));
         }
 
     }
@@ -129,14 +152,16 @@ public class CoinPayFragment extends Fragment {
     private void setShouldPay(int amount) {
         if (getView() != null) {
             TextView text = getView().findViewById(R.id.should_pay);
-            text.setText(String.valueOf(amount));
+            text.setText(String.format("%s:%s", getString(R.string.end_count), String.valueOf(amount)));
+            TextView bigText = getView().findViewById(R.id.text_should_pay);
+            bigText.setText(String.format(String.valueOf(amount)));
         }
     }
 
     private void setDiscount(int amount) {
         if (getView() != null) {
             TextView text = getView().findViewById(R.id.discount);
-            text.setText(String.valueOf(amount));
+            text.setText(String.format("%s:%s", getString(R.string.discount_count), String.valueOf(amount)));
         }
     }
 
@@ -148,7 +173,7 @@ public class CoinPayFragment extends Fragment {
     }
 
     private void startPay(int payWay) {
-        switch(payWay){
+        switch (payWay) {
             case 0://Cash
                 break;
             case 1://EZ Pay
@@ -159,23 +184,24 @@ public class CoinPayFragment extends Fragment {
                 break;
         }
     }
-    private Bitmap getPictureByPath(String path){
+
+    private Bitmap getPictureByPath(String path) {
         Var<Bitmap> bitmap = new Var<>();
-        Thread t = new Thread(()->{
+        Thread t = new Thread(() -> {
             try {
                 String base = ApacheServerRequest.getBase64Picture(path);
-                if(base != null){
+                if (base != null) {
                     byte[] bytes = Util.getBase64Decode(base);
                     bitmap.set(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
         try {
             t.start();
             t.join();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return bitmap.get();

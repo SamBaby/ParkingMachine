@@ -471,8 +471,9 @@ public class EcpayFunction {
         return false;
     }
 
-    public static void invoiceIssueOffline(Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID, int amount, String key, String IV) {
-        new Thread(() -> {
+    public static String invoiceIssueOffline(Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID, int amount, String key, String IV) {
+        Var<String> billNumber = new Var<>();
+        Thread t = new Thread(() -> {
             Var<String> invoiceNo = new Var<>();
             Var<String> invoiceDate = new Var<>();
             MachineNumberInfo info = EcpayFunction.getMachineInvoiceNumberInfo(merchantID, machineID, algorithm, key, IV);
@@ -491,14 +492,14 @@ public class EcpayFunction {
                 data.setCustomerPhone("");
                 data.setCustomerEmail("");
                 data.setClearanceMark("");
-                data.setPrint((carrierID != null && !carrierID.isEmpty()) ? "1" : "0");
+                data.setPrint(carrierID.isEmpty() ? "1" : "0");
                 data.setDonation("0");
                 data.setLoveCode("");
                 data.setCarrierType("");
                 data.setCarrierNum(carrierID);
                 data.setTaxType("1");
                 data.setSpecialTaxType("0");
-                data.setSalesAmount(30);
+                data.setSalesAmount(amount);
                 data.setInvType("07");
                 data.setVat("1");
                 data.setInvoiceRemark("");
@@ -527,17 +528,19 @@ public class EcpayFunction {
                 String dataString = gson.toJson(data);
                 json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
                 String jsonText = gson.toJson(json);
-
                 try {
                     String res = EcpayFunction.httpPost("https://einvoice-stage.ecpay.com.tw/B2CInvoice/OfflineIssue", jsonText, "UTF-8");
                     if (res != null) {
                         JSONObject ret = new JSONObject(res);
                         if (!ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
                             JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
-                            if (returnData.getInt("RtnCode") == 1 && carrierID != null) {
+                            if (returnData.getInt("RtnCode") == 1) {
                                 invoiceNo.set(returnData.getString("InvoiceNo"));
                                 invoiceDate.set(currentDate.split(" ")[0]);
-                                invoicePrint(activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
+                                if (carrierID == null) {
+                                    invoicePrint(activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
+                                }
+                                billNumber.set(invoiceNo.get());
                             } else {
                                 //失敗
                             }
@@ -552,12 +555,19 @@ public class EcpayFunction {
                 }
 
             }
-        }).start();
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return billNumber.get();
     }
 
     public static void invoicePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date) {
         if (invoiceNumber != null && date != null && !invoiceNumber.isEmpty() && !date.isEmpty()) {
-            new Thread(() -> {
+            Thread t = new Thread(() -> {
                 long unixTime = System.currentTimeMillis() / 1000L;
                 EnvoiceJson json = new EnvoiceJson();
                 RqHeader header = new RqHeader();
@@ -628,7 +638,13 @@ public class EcpayFunction {
                     ee.printStackTrace();
                     //發票網址取得失敗
                 }
-            }).start();
+            });
+            try {
+                t.start();
+                t.join();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             //發票網址取得失敗
         }

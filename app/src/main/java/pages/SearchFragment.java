@@ -109,6 +109,7 @@ public class SearchFragment extends Fragment {
                                 getActivity().runOnUiThread(() -> {
                                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                                     viewModel.setCars(cars);
+                                    input.setText("");
                                     viewPager.setCurrentItem(1, true);
                                 });
                             }

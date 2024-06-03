@@ -1,6 +1,7 @@
 package pages;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +16,10 @@ import androidx.viewpager.widget.ViewPager;
 import com.android.machine.R;
 import com.example.machine.MainViewModel;
 
+import datamodel.CarInside;
 import datamodel.ECPayData;
 import ecpay.EcpayFunction;
+import util.ApacheServerRequest;
 import util.Util;
 
 /**
@@ -37,6 +40,7 @@ public class CompanyIDFragment extends Fragment {
     private TextView input;
     ViewPager viewPager;
     MainViewModel viewModel;
+    private Handler handler = new Handler();
 
     public CompanyIDFragment() {
         // Required empty public constructor
@@ -148,18 +152,54 @@ public class CompanyIDFragment extends Fragment {
         Button buttonPrint = view.findViewById(R.id.button_print);
         buttonPrint.setOnClickListener(v -> {
             String id = input.getText().toString();
-            boolean idPass = checkCompanyID(id);
-            if (idPass) {
-                ECPayData data = Util.getECPayData();
+            ECPayData data = Util.getECPayData();
+            if (id.isEmpty()) {
                 if (data != null) {
-                    EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                            data.getMachineID(), data.getCompanyID(), id, null, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
-                    input.setText("");
+                    String number = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                            data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                    CarInside car = viewModel.getSelectedCars().getValue();
+                    new Thread(() -> {
+                        ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                                viewModel.getDiscountMoney().getValue(), number, "A");
+                    }).start();
+                    viewModel.setSelectedCars(null);
+                    viewPager.setCurrentItem(6);
+                    // Schedule to change the page to index 0 after 10 seconds
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            viewPager.setCurrentItem(0);
+                        }
+                    }, 5000); // 10000 milliseconds = 10 seconds
                 }
             } else {
-                Toast.makeText(getActivity(), getString(R.string.company_id_not_found), Toast.LENGTH_SHORT).show();
-                input.setText("");
+                boolean idPass = checkCompanyID(id);
+                if (idPass) {
+                    if (data != null) {
+                        String number = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                                data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                        CarInside car = viewModel.getSelectedCars().getValue();
+                        new Thread(() -> {
+                            ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                                    viewModel.getDiscountMoney().getValue(), number, "A");
+                        }).start();
+                        input.setText("");
+                        viewModel.setSelectedCars(null);
+                        viewPager.setCurrentItem(6);
+                        // Schedule to change the page to index 0 after 10 seconds
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                viewPager.setCurrentItem(0);
+                            }
+                        }, 5000); // 10000 milliseconds = 10 seconds
+                    }
+                } else {
+                    Toast.makeText(getActivity(), getString(R.string.company_id_not_found), Toast.LENGTH_SHORT).show();
+                    input.setText("");
+                }
             }
+
         });
     }
 
