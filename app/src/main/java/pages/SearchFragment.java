@@ -21,6 +21,9 @@ import com.google.gson.GsonBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 
 import datamodel.CarInside;
@@ -102,7 +105,9 @@ public class SearchFragment extends Fragment {
                                 JSONObject obj = array.getJSONObject(i);
                                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                                 CarInside car = gson.fromJson(obj.toString(), CarInside.class);
-                                cars.add(car);
+                                if(checkShouldPay(car)){
+                                    cars.add(car);
+                                }
                             }
                             if (!cars.isEmpty()) {
                                 ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
@@ -132,6 +137,21 @@ public class SearchFragment extends Fragment {
 //        car.setImageBitmap(bitmap);
         return root;
     }
+
+    private boolean checkShouldPay(CarInside car) {
+        if (car.getTime_pay() == null || car.getTime_pay().isEmpty()) {
+            return true;
+        }
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date nowDate = new Date();
+            Date payDate = format.parse(car.getTime_pay());
+            return nowDate.getTime() - payDate.getTime() / 1000 >= 900;
+        }catch (Exception e){
+            return true;
+        }
+    }
+
 
     private void initButtons(View view, TextView input) {
         Button button0 = view.findViewById(R.id.button_0);

@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -83,7 +84,7 @@ public class PaymentChooseFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
-
+    private Handler handler = new Handler();
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_payment_choose, container, false);
@@ -93,6 +94,7 @@ public class PaymentChooseFragment extends Fragment {
             viewModel.getTotalMoney().observe(getViewLifecycleOwner(), this::setTotal);
             viewModel.getDiscountMoney().observe(getViewLifecycleOwner(), this::setDiscount);
             viewModel.getShouldPayMoney().observe(getViewLifecycleOwner(), this::setShouldPay);
+            viewModel.getPayTime().observe(getViewLifecycleOwner(), this::setTimeOut);
             ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
             Button btnCancel = root.findViewById(R.id.button_cancel);
             btnCancel.setOnClickListener(v -> {
@@ -101,20 +103,38 @@ public class PaymentChooseFragment extends Fragment {
             });
 
             Button btnCash = root.findViewById(R.id.button_cash);
-            Button btnEZPay = root.findViewById(R.id.button_ezpay);
-            Button btnLinePay = root.findViewById(R.id.button_linepay);
+//            Button btnEZPay = root.findViewById(R.id.button_ezpay);
+//            Button btnLinePay = root.findViewById(R.id.button_linepay);
             btnCash.setOnClickListener(v -> {
-                viewModel.setPayWay(0);
-                viewPager.setCurrentItem(3, true);
+                if (viewModel.getCoin10Device() == null || viewModel.getCoin50Device() == null
+                        || viewModel.getCoinInputDevice() == null || viewModel.getPaperInputDevice() == null) {
+                    CarInside car = viewModel.getSelectedCars().getValue();
+                    new Thread(() -> {
+                        ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                                viewModel.getDiscountMoney().getValue(), "", "A");
+                    }).start();
+                    viewModel.setSelectedCars(null);
+                    viewPager.setCurrentItem(6);
+                    // Schedule to change the page to index 0 after 10 seconds
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            viewPager.setCurrentItem(0);
+                        }
+                    }, 5000); // 10000 milliseconds = 10 seconds
+                }else{
+                    viewModel.setPayWay(0);
+                    viewPager.setCurrentItem(3, true);
+                }
             });
-            btnEZPay.setOnClickListener(v -> {
-                viewModel.setPayWay(1);
-                viewPager.setCurrentItem(3, true);
-            });
-            btnLinePay.setOnClickListener(v -> {
-                viewModel.setPayWay(2);
-                viewPager.setCurrentItem(3, true);
-            });
+//            btnEZPay.setOnClickListener(v -> {
+//                viewModel.setPayWay(1);
+//                viewPager.setCurrentItem(3, true);
+//            });
+//            btnLinePay.setOnClickListener(v -> {
+//                viewModel.setPayWay(2);
+//                viewPager.setCurrentItem(3, true);
+//            });
         }
 
         return root;
@@ -137,29 +157,13 @@ public class PaymentChooseFragment extends Fragment {
             carNumber.setText(car.getCar_number());
             //set time in
             timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
-            //set time out
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date nowDate = new Date();
-            String nowString = format.format(nowDate);
-            timeOut.setText(String.format("%s %s", getResources().getString(R.string.exit_time), nowString));
-            //calculate money
-            try {
-                Date timeInDate = (car.getTime_pay() != null && !car.getTime_pay().isEmpty()) ? format.parse(car.getTime_pay()) : format.parse(car.getTime_in());
-//                Date timeInDate = format.parse(car.getTime_in());
-                if (timeInDate != null) {
-                    int totalMoney = calculateFee(timeInDate, nowDate);
-                    if (getActivity() != null) {
-                        MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
-                        viewModel.setTotalMoney(totalMoney);
-                        viewModel.setDiscountMoney(car.getDiscount());
-                        viewModel.setPayTime(nowString);
-                        int shouldPay = totalMoney - car.getDiscount();
-                        viewModel.setShouldPayMoney(Math.max(shouldPay, 0));
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        }
+    }
+
+    private void setTimeOut(String timeOut) {
+        if (getView() != null) {
+            TextView text = getView().findViewById(R.id.time_out);
+            text.setText(String.format("%s %s", getResources().getString(R.string.exit_time), timeOut));
         }
     }
 

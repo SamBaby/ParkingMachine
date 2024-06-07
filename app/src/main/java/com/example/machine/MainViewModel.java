@@ -119,11 +119,13 @@ public class MainViewModel extends ViewModel {
     public void setCoinInputDevice(FT_Device device) {
         this.coinInputDevice = device;
         readCoinInput();
+        setCoinInputDisable();
     }
 
     public void setPaperInputDevice(FT_Device device) {
         this.paperInputDevice = device;
         readPaperInput();
+        setPaperDisable();
     }
 
     public void setCoin10Device(FT_Device device) {

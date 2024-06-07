@@ -134,26 +134,26 @@
                 android:textColor="@color/white"
                 android:textSize="30sp"
                 android:layout_gravity="center"/>
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/button_ezpay"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/next_page_button"
-                android:text="@string/card"
-                android:textColor="@color/white"
-                android:textSize="30sp"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"/>
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/button_linepay"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/next_page_button"
-                android:text="@string/line_pay"
-                android:textColor="@color/white"
-                android:textSize="30sp"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"/>
+<!--            <androidx.appcompat.widget.AppCompatButton-->
+<!--                android:id="@+id/button_ezpay"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:background="@drawable/next_page_button"-->
+<!--                android:text="@string/card"-->
+<!--                android:textColor="@color/white"-->
+<!--                android:textSize="30sp"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="20dp"/>-->
+<!--            <androidx.appcompat.widget.AppCompatButton-->
+<!--                android:id="@+id/button_linepay"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:background="@drawable/next_page_button"-->
+<!--                android:text="@string/line_pay"-->
+<!--                android:textColor="@color/white"-->
+<!--                android:textSize="30sp"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="20dp"/>-->
         </LinearLayout>
     </LinearLayout>
 

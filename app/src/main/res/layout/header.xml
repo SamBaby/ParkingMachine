@@ -35,7 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="鳳山保華停車場"
+        android:text="小港松高停車場"
         android:textColor="@color/grey_border"
         android:background="@drawable/light_grey_border"
         android:layout_marginHorizontal="50dp"

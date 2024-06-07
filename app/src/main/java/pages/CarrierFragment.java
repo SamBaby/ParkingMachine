@@ -23,6 +23,7 @@ import com.example.machine.MainViewModel;
 import datamodel.CarInside;
 import datamodel.ECPayData;
 import ecpay.EcpayFunction;
+import event.Var;
 import util.ApacheServerRequest;
 import util.Util;
 
@@ -116,12 +117,18 @@ public class CarrierFragment extends Fragment {
                         Boolean check = checkCarrierId(id);
                         if (check) {
                             ECPayData data = Util.getECPayData();
-                            String number = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                    data.getMerchantID(),data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                            Var<String> number = new Var<>("");
+                            String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                                    data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
                             CarInside car = viewModel.getSelectedCars().getValue();
+                            if(invoice != null){
+                                number.set(invoice);
+                            }
                             new Thread(() -> {
                                 ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
-                                        viewModel.getDiscountMoney().getValue(), number, "A");
+                                        viewModel.getDiscountMoney().getValue(), number.get(), "A");
+                                ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
+                                        viewModel.getTotalMoney().getValue(), number.get(), "A");
                             }).start();
                             editText.setText("");
                             viewModel.setSelectedCars(null);

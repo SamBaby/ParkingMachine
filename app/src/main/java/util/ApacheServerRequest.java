@@ -1,6 +1,8 @@
 package util;
 
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,7 +11,7 @@ import datamodel.BasicSetting;
 import datamodel.DayHoliday;
 
 public class ApacheServerRequest {
-    public static final String url = "http://localhost:8080/function.php/";
+    public static final String url = "http://192.168.1.200:8080/function.php/";
 
     public static String getUsers() {
         return HTTPGetRequest.get(url, "func=user_search");
@@ -63,8 +65,6 @@ public class ApacheServerRequest {
         map.put("discount", String.valueOf(discount));
         map.put("bill_number", billNumber);
         map.put("payment", payment);
-//        return HTTPGetRequest.post(url, String.format("func=cars_inside_update&car_number=%s&time_pay=%s&cost=%d&discount=%d&bill_number=%s&payment=%s",
-//                carNumber, payTime, cost, discount, billNumber, payment));
         return HTTPGetRequest.post(url + "?func=cars_inside_update", map);
     }
 
@@ -136,6 +136,17 @@ public class ApacheServerRequest {
         return HTTPGetRequest.get(url, String.format("func=pay_dates_search&start=%s&end=%s&car_number=%s&payment=%s", start, end, carNumber, payment));
     }
 
+    public static String addPayHistory(String carNumber, String timeIn, String timePay, int cost, String billNumber, String payment) {
+        Map<String, String> map = new HashMap<>();
+        map.put("car_number", carNumber);
+        map.put("time_in", timeIn);
+        map.put("time_pay", timePay);
+        map.put("cost", String.valueOf(cost));
+        map.put("bill_number", billNumber);
+        map.put("payment", payment);
+        return HTTPGetRequest.post(url+ "?func=pay_dates_add", map);
+    }
+
     public static String getCompanyInformation() {
         return HTTPGetRequest.get(url, "func=company_info_search");
     }
@@ -186,4 +197,12 @@ public class ApacheServerRequest {
         return HTTPGetRequest.get(url, String.format("func=get_car_image&path=%s", path));
     }
 
+    private static String encodeValue(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return value;
+        }
+    }
 }

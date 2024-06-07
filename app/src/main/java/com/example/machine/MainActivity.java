@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,6 +21,8 @@ import com.android.machine.R;
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.FT_Device;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.TimerTask;
 
 import ecpay.EcpayFunction;
@@ -60,16 +63,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handlePrintMachine() {
-        printConnector = new UsbConnector(this);
-        printCxt = printConnector.ConnectUsb(0, 0, 0, 0);
-        model.setInvoiceConnector(printConnector);
-        model.setInvoiceCxt(printCxt);
+        if (printCxt == null) {
+            printConnector = new UsbConnector(this);
+            printCxt = printConnector.ConnectUsb(0, 1137, 85, 0);
+            model.setInvoiceConnector(printConnector);
+            model.setInvoiceCxt(printCxt);
+        }
     }
 
     private void handleFT4232H(D2xxManager manager) {
         int devCount = 0;
+        manager.setVIDPID(1027, 24593);
         devCount = manager.createDeviceInfoList(this);
-        if (devCount == 4 && coinInputDevice == null) {
+        if (devCount >= 4 && coinInputDevice == null) {
             coinInputDevice = manager.openByIndex(this, 0);
             setCoinMachineConfig(coinInputDevice);
             paperInputDevice = manager.openByIndex(this, 1);
@@ -117,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
         if (hotplug.equals(action)) {
             try {
                 handleFT4232H(coinInputManager);
+                handlePrintMachine();
             } catch (Exception e) {
                 e.printStackTrace();
             }

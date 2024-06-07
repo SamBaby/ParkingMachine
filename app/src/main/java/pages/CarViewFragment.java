@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,10 +19,22 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.machine.MainViewModel;
 import com.android.machine.R;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
+import datamodel.BasicFee;
 import datamodel.CarInside;
+import datamodel.DayHoliday;
 import event.Var;
 import util.ApacheServerRequest;
 import util.Util;
@@ -154,7 +167,7 @@ public class CarViewFragment extends Fragment {
             }
         }
     }
-
+    private Handler handler = new Handler();
     private void setCar1(CarInside car) {
         if (getView() == null) {
             return;
@@ -178,7 +191,19 @@ public class CarViewFragment extends Fragment {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    viewPager.setCurrentItem(2, true);
+                    if(setSelectedCar(car)){//shouldPay >0
+                        viewPager.setCurrentItem(2, true);
+                    }else{
+                        viewModel.setSelectedCars(null);
+                        viewPager.setCurrentItem(6);
+                        // Schedule to change the page to index 0 after 10 seconds
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                viewPager.setCurrentItem(0);
+                            }
+                        }, 5000); // 10000 milliseconds = 10 seconds
+                    }
                 }
             });
         } else {
@@ -213,8 +238,21 @@ public class CarViewFragment extends Fragment {
                 if (getActivity() != null) {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
+                    setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    viewPager.setCurrentItem(2, true);
+                    if(setSelectedCar(car)){//shouldPay >0
+                        viewPager.setCurrentItem(2, true);
+                    }else{
+                        viewModel.setSelectedCars(null);
+                        viewPager.setCurrentItem(6);
+                        // Schedule to change the page to index 0 after 10 seconds
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                viewPager.setCurrentItem(0);
+                            }
+                        }, 5000); // 10000 milliseconds = 10 seconds
+                    }
                 }
             });
         } else {
@@ -248,8 +286,21 @@ public class CarViewFragment extends Fragment {
                 if (getActivity() != null) {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
+                    setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    viewPager.setCurrentItem(2, true);
+                    if(setSelectedCar(car)){//shouldPay >0
+                        viewPager.setCurrentItem(2, true);
+                    }else{
+                        viewModel.setSelectedCars(null);
+                        viewPager.setCurrentItem(6);
+                        // Schedule to change the page to index 0 after 10 seconds
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                viewPager.setCurrentItem(0);
+                            }
+                        }, 5000); // 10000 milliseconds = 10 seconds
+                    }
                 }
             });
         } else {
@@ -283,9 +334,21 @@ public class CarViewFragment extends Fragment {
                 if (getActivity() != null) {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
-                    viewModel.resetTotalPay();
+                    setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    viewPager.setCurrentItem(2, true);
+                    if(setSelectedCar(car)){//shouldPay >0
+                        viewPager.setCurrentItem(2, true);
+                    }else{
+                        viewModel.setSelectedCars(null);
+                        viewPager.setCurrentItem(6);
+                        // Schedule to change the page to index 0 after 10 seconds
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                viewPager.setCurrentItem(0);
+                            }
+                        }, 5000); // 10000 milliseconds = 10 seconds
+                    }
                 }
             });
         } else {
@@ -297,25 +360,241 @@ public class CarViewFragment extends Fragment {
         }
     }
 
-    private Bitmap getPictureByPath(String path){
+    private Bitmap getPictureByPath(String path) {
         Var<Bitmap> bitmap = new Var<>();
-        Thread t = new Thread(()->{
+        Thread t = new Thread(() -> {
             try {
                 String base = ApacheServerRequest.getBase64Picture(path);
-                if(base != null){
+                if (base != null) {
                     byte[] bytes = Util.getBase64Decode(base);
                     bitmap.set(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
         try {
             t.start();
             t.join();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return bitmap.get();
     }
+
+    private BasicFee getBasicFee() {
+        Var<BasicFee> basicFee = new Var<>(null);
+        Thread t = new Thread(() -> {
+            String json = ApacheServerRequest.getBasicFee();
+            if (json != null) {
+                try {
+                    JSONArray array = new JSONArray(json);
+                    if (array.length() > 0) {
+                        JSONObject obj = array.getJSONObject(0);
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        BasicFee fee = gson.fromJson(obj.toString(), BasicFee.class);
+                        basicFee.set(fee);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return basicFee.get();
+    }
+
+    private boolean checkHoliday(String date) {
+        Var<Boolean> ret = new Var<>(false);
+        Thread t = new Thread(() -> {
+            String json = ApacheServerRequest.getHoliday(date);
+            if (json != null) {
+                try {
+                    JSONArray array = new JSONArray(json);
+                    if (array.length() > 0) {
+                        ret.set(true);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ret.get();
+    }
+
+    private Map<Integer, Boolean> getDayHoliday() {
+        Var<DayHoliday> holiday = new Var<>(null);
+        Thread t = new Thread(() -> {
+            String json = ApacheServerRequest.getDayHoliday();
+            if (json != null) {
+                try {
+                    JSONArray array = new JSONArray(json);
+                    if (array.length() > 0) {
+                        JSONObject obj = array.getJSONObject(0);
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        DayHoliday fee = gson.fromJson(obj.toString(), DayHoliday.class);
+                        holiday.set(fee);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Map<Integer, Boolean> ret = new HashMap<>();
+        if (holiday.get() != null) {
+            ret.put(1, holiday.get().getMonday() == 1);
+            ret.put(2, holiday.get().getTuesday() == 1);
+            ret.put(3, holiday.get().getWednesday() == 1);
+            ret.put(4, holiday.get().getThursday() == 1);
+            ret.put(5, holiday.get().getFriday() == 1);
+            ret.put(6, holiday.get().getSaturday() == 1);
+            ret.put(7, holiday.get().getSunday() == 1);
+        }
+        return ret;
+    }
+
+    public int calculateFee(Date startDate, Date endDate) {
+        BasicFee basicFee = getBasicFee();
+        Map<Integer, Boolean> dayHoliday = getDayHoliday();
+
+        int totalFee = 0;
+
+        // Calculate fee for each day between start and end dates
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+        calendar.add(Calendar.MINUTE, basicFee.getEnter_time_not_count());
+        //reset startDate with no count minutes
+        startDate = calendar.getTime();
+
+        long durationInMillis = endDate.getTime() - startDate.getTime();
+
+        // If duration is negative, no pay
+        if ((durationInMillis / (1000 * 60)) <= 0) {
+            return 0;
+        }
+
+        long totalDurationInDays = Util.daysBetween(startDate, endDate);
+        if (totalDurationInDays > 0) {
+            for (int i = 0; i <= totalDurationInDays; i++) {
+                if (i == 0) {
+                    // Calculate end time of the current day
+                    calendar.set(Calendar.HOUR_OF_DAY, 23);
+                    calendar.set(Calendar.MINUTE, 59);
+                    calendar.set(Calendar.SECOND, 59);
+                    calendar.set(Calendar.MILLISECOND, 999);
+                    Date dayEndTime = calendar.getTime();
+                    totalFee += calculateOneDayFee(startDate, dayEndTime, basicFee, dayHoliday);
+                } else if (i == totalDurationInDays) {
+                    // Calculate start time of the current day
+                    calendar.set(Calendar.HOUR_OF_DAY, 0);
+                    calendar.set(Calendar.MINUTE, 0);
+                    calendar.set(Calendar.SECOND, 0);
+                    calendar.set(Calendar.MILLISECOND, 0);
+                    Date dayStartTime = calendar.getTime();
+                    totalFee += calculateOneDayFee(dayStartTime, endDate, basicFee, dayHoliday);
+                } else {
+                    // Calculate start time of the current day
+                    calendar.set(Calendar.HOUR_OF_DAY, 0);
+                    calendar.set(Calendar.MINUTE, 0);
+                    calendar.set(Calendar.SECOND, 0);
+                    calendar.set(Calendar.MILLISECOND, 0);
+                    Date dayStartTime = calendar.getTime();
+                    // Calculate end time of the current day
+                    calendar.set(Calendar.HOUR_OF_DAY, 23);
+                    calendar.set(Calendar.MINUTE, 59);
+                    calendar.set(Calendar.SECOND, 59);
+                    calendar.set(Calendar.MILLISECOND, 999);
+                    Date dayEndTime = calendar.getTime();
+                    totalFee += calculateOneDayFee(dayStartTime, dayEndTime, basicFee, dayHoliday);
+                }
+                // Move calendar to the next day
+                calendar.add(Calendar.DAY_OF_MONTH, 1);
+            }
+        } else {
+            totalFee += calculateOneDayFee(startDate, endDate, basicFee, dayHoliday);
+        }
+
+
+        return totalFee;
+    }
+
+    private int calculateOneDayFee(Date startDate, Date endDate, BasicFee basicFee, Map<Integer, Boolean> dayHoliday) {
+        long durationOfTheDayInMillis = endDate.getTime() - startDate.getTime();
+        boolean isHoliday = checkIfHoliday(startDate, dayHoliday);
+        int basic = isHoliday ? basicFee.getHoliday_fee() : basicFee.getWeekday_fee();
+        int most = isHoliday ? basicFee.getHoliday_most_fee() : basicFee.getWeekday_most_fee();
+        int unitMinute = basicFee.getAfter_one_hour_unit() == 0 ? 30 : 60;
+        long duration = durationOfTheDayInMillis / (1000L * unitMinute * 60) + (durationOfTheDayInMillis % (1000L * unitMinute * 60) > 0 ? 1 : 0);
+        return (int) Math.min(duration * basic, most);
+    }
+
+    private boolean checkIfHoliday(Date date, Map<Integer, Boolean> dayHoliday) {
+        boolean ret = false;
+        Calendar c = Calendar.getInstance();
+        int weekday = c.get(Calendar.DAY_OF_WEEK);
+        if (Boolean.TRUE.equals(dayHoliday.get(weekday))) {
+            return true;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            if (checkHoliday(format.format(date))) {
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private boolean setSelectedCar(CarInside car) {
+        //set time out
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date nowDate = new Date();
+        String nowString = format.format(nowDate);
+        //calculate money
+        try {
+            Date timeInDate = (car.getTime_pay() != null && !car.getTime_pay().isEmpty()) ? format.parse(car.getTime_pay()) : format.parse(car.getTime_in());
+            if (timeInDate != null) {
+                int totalMoney = calculateFee(timeInDate, nowDate);
+                if (getActivity() != null) {
+                    MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+                    viewModel.resetTotalPay();
+                    viewModel.setTotalMoney(totalMoney);
+                    viewModel.setDiscountMoney(car.getDiscount());
+                    viewModel.setPayTime(nowString);
+                    int shouldPay = totalMoney - car.getDiscount();
+                    viewModel.setShouldPayMoney(Math.max(shouldPay, 0));
+                    if (shouldPay > 0) {
+                        return true;
+                    }else{
+                        new Thread(() -> {
+                            ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                                    viewModel.getDiscountMoney().getValue(), "", "D");
+                        }).start();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }

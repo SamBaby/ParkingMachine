@@ -19,6 +19,7 @@ import com.example.machine.MainViewModel;
 import datamodel.CarInside;
 import datamodel.ECPayData;
 import ecpay.EcpayFunction;
+import event.Var;
 import util.ApacheServerRequest;
 import util.Util;
 
@@ -155,12 +156,24 @@ public class CompanyIDFragment extends Fragment {
             ECPayData data = Util.getECPayData();
             if (id.isEmpty()) {
                 if (data != null) {
-                    String number = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                            data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
                     CarInside car = viewModel.getSelectedCars().getValue();
+                    Var<String> number = new Var<>("");
+                    if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
+                        try {
+                            String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                                    data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                            if(invoice != null){
+                                number.set(invoice);
+                            }
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
                     new Thread(() -> {
                         ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
-                                viewModel.getDiscountMoney().getValue(), number, "A");
+                                viewModel.getDiscountMoney().getValue(), number.get(), "A");
+                        ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
+                                viewModel.getTotalMoney().getValue(), number.get(), "A");
                     }).start();
                     viewModel.setSelectedCars(null);
                     viewPager.setCurrentItem(6);
@@ -176,12 +189,23 @@ public class CompanyIDFragment extends Fragment {
                 boolean idPass = checkCompanyID(id);
                 if (idPass) {
                     if (data != null) {
-                        String number = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
                         CarInside car = viewModel.getSelectedCars().getValue();
+                        Var<String> number = new Var<>("");
+                        if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
+                            try {
+                                String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                                        data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());                                if(invoice != null){
+                                    number.set(invoice);
+                                }
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
                         new Thread(() -> {
                             ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
-                                    viewModel.getDiscountMoney().getValue(), number, "A");
+                                    viewModel.getDiscountMoney().getValue(), number.get(), "A");
+                            ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
+                                    viewModel.getTotalMoney().getValue(), number.get(), "A");
                         }).start();
                         input.setText("");
                         viewModel.setSelectedCars(null);
