@@ -468,4 +468,13 @@ public class MainViewModel extends ViewModel {
             e.printStackTrace();
         }
     }
+
+    public String getPayment(){
+        String ret = "E";
+        if(payWay.getValue() == 1){
+            ret = "C";
+        }
+        return ret;
+    }
+
 }

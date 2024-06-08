@@ -84,7 +84,9 @@ public class PaymentChooseFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
+
     private Handler handler = new Handler();
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_payment_choose, container, false);
@@ -111,7 +113,7 @@ public class PaymentChooseFragment extends Fragment {
                     CarInside car = viewModel.getSelectedCars().getValue();
                     new Thread(() -> {
                         ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
-                                viewModel.getDiscountMoney().getValue(), "", "A");
+                                viewModel.getDiscountMoney().getValue(), "", viewModel.getPayment());
                     }).start();
                     viewModel.setSelectedCars(null);
                     viewPager.setCurrentItem(6);
@@ -122,7 +124,7 @@ public class PaymentChooseFragment extends Fragment {
                             viewPager.setCurrentItem(0);
                         }
                     }, 5000); // 10000 milliseconds = 10 seconds
-                }else{
+                } else {
                     viewModel.setPayWay(0);
                     viewPager.setCurrentItem(3, true);
                 }
