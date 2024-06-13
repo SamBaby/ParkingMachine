@@ -8,6 +8,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,14 +21,26 @@ import androidx.viewpager.widget.ViewPager;
 import com.android.machine.R;
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.FT_Device;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TimerTask;
+import java.util.Vector;
 
+import datamodel.CarInside;
+import datamodel.CouponSetting;
+import datamodel.MoneyRefund;
 import ecpay.EcpayFunction;
+import event.Var;
 import usb.UsbConnectionContext;
 import usb.UsbConnector;
+import util.ApacheServerRequest;
+import util.Util;
 
 public class MainActivity extends AppCompatActivity {
     private MainViewModel model;
@@ -55,11 +68,49 @@ public class MainActivity extends AppCompatActivity {
         model = new ViewModelProvider(this).get(MainViewModel.class);
         try {
             coinInputManager = D2xxManager.getInstance(this);
-            handleFT4232H(coinInputManager);
-            handlePrintMachine();
+            checkDeviceThread();
+            model.startCheckThread();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Thread t  = new Thread(()->{
+            try {
+                String res = ApacheServerRequest.getCompanyInformation();
+                if(res !=null && !res.isEmpty()){
+                    JSONArray array = new JSONArray(res);
+                    if(array.length() > 0){
+                        JSONObject obj = array.getJSONObject(0);
+                        if(obj.has("lot_name")){
+                            String lotName = obj.getString("lot_name");
+                            model.setLotName(lotName);
+                        }
+                    }
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void checkDeviceThread() {
+        Thread t = new Thread(()->{
+            while (true){
+                try {
+                    Thread.sleep(5000);
+                    handleFT4232H(coinInputManager);
+                    handlePrintMachine();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
     }
 
     private void handlePrintMachine() {

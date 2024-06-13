@@ -74,9 +74,17 @@ public class HTTPGetRequest {
             int responseCode = conn.getResponseCode();
             // Read response
             // TODO: Handle response here
-
+            // 读取响应内容
+            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
             // Close connection
             conn.disconnect();
+            return response.toString();
         } catch (Exception e) {
             e.printStackTrace();
         }

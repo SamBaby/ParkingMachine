@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -87,6 +88,8 @@ public class CarrierFragment extends Fragment {
         if (getActivity() != null) {
             viewPager = getActivity().findViewById(R.id.view_pager);
             viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+            TextView title = root.findViewById(R.id.text_title);
+            title.setText(viewModel.getLotName());
             Button previousBtn = root.findViewById(R.id.button_previous);
             previousBtn.setOnClickListener(v -> viewPager.setCurrentItem(4));
             editText.requestFocus();
@@ -114,6 +117,10 @@ public class CarrierFragment extends Fragment {
                 public void afterTextChanged(Editable s) {
                     if (!s.toString().isEmpty()) {
                         String id = s.toString();
+                        if (id.lastIndexOf("/") >= 0) {
+                            id = id.substring(id.lastIndexOf("/"));
+                            editText.setText(id);
+                        }
                         Boolean check = checkCarrierId(id);
                         if (check) {
                             ECPayData data = Util.getECPayData();
@@ -121,7 +128,7 @@ public class CarrierFragment extends Fragment {
                             String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
                                     data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
                             CarInside car = viewModel.getSelectedCars().getValue();
-                            if(invoice != null){
+                            if (invoice != null) {
                                 number.set(invoice);
                             }
                             new Thread(() -> {
@@ -141,8 +148,7 @@ public class CarrierFragment extends Fragment {
                                 }
                             }, 5000); // 10000 milliseconds = 10 seconds
                         } else {
-                            Toast.makeText(getActivity(), getString(R.string.carrier_id_not_found), Toast.LENGTH_SHORT).show();
-                            editText.setText("");
+                            Toast.makeText(getActivity(), getString(R.string.carrier_id_not_found) + ":" + id, Toast.LENGTH_SHORT).show();
                         }
                     }
                 }

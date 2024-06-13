@@ -11,7 +11,7 @@ import datamodel.BasicSetting;
 import datamodel.DayHoliday;
 
 public class ApacheServerRequest {
-    public static final String url = "http://192.168.1.200:8080/function.php/";
+    public static final String url = "http://localhost:8080/function.php/";
 
     public static String getUsers() {
         return HTTPGetRequest.get(url, "func=user_search");
@@ -144,7 +144,7 @@ public class ApacheServerRequest {
         map.put("cost", String.valueOf(cost));
         map.put("bill_number", billNumber);
         map.put("payment", payment);
-        return HTTPGetRequest.post(url+ "?func=pay_dates_add", map);
+        return HTTPGetRequest.post(url + "?func=pay_dates_add", map);
     }
 
     public static String getCompanyInformation() {
@@ -204,5 +204,69 @@ public class ApacheServerRequest {
             e.printStackTrace();
             return value;
         }
+    }
+
+    public static String getCouponSetting() {
+        return HTTPGetRequest.get(url, "func=coupon_setting_search");
+    }
+
+    public static String setCouponSettingStop() {
+        return HTTPGetRequest.get(url, "func=coupon_setting_update_stop");
+    }
+
+    public static String moneyCountSearch() {
+        return HTTPGetRequest.get(url, "func=money_count_search");
+    }
+
+    public static String moneyCountUpdate(int five, int ten, int fifty, int hundred) {
+        return HTTPGetRequest.get(url, String.format("func=money_count_update&five=%d&ten=%d&fifty=%d&hundred=%d", five, ten, fifty, hundred));
+    }
+
+    public static String moneyBasicSearch() {
+        return HTTPGetRequest.get(url, "func=money_basic_search");
+    }
+
+    public static String moneyBasicUpdate(String five_basic, String ten_basic, String fifty_basic, String five_alert, String ten_alert, String fifty_alert) {
+        return HTTPGetRequest.get(url, String.format("func=money_basic_update&five_basic=%s&ten_basic=%s&fifty_basic=%s&five_alert=%s&ten_alert=%s&fifty_alert=%s",
+                five_basic, ten_basic, fifty_basic, five_alert, ten_alert, fifty_alert));
+    }
+
+    public static String moneyRefundStart(String five, String ten, String fifty) {
+        return HTTPGetRequest.get(url, String.format("func=money_refund_update&five=%s&ten=%s&fifty=%s",
+                five, ten, fifty));
+    }
+
+    public static String moneySupplyStart(String five, String ten, String fifty) {
+        return HTTPGetRequest.get(url, String.format("func=money_supply_start&five=%s&ten=%s&fifty=%s",
+                five, ten, fifty));
+    }
+
+    public static String moneySupplySearch() {
+        return HTTPGetRequest.get(url, "func=money_supply_search");
+    }
+
+    public static String moneySupplyUpdate(int five, int ten, int fifty) {
+        return HTTPGetRequest.get(url, String.format("func=money_supply_update&five_count=%d&ten_count=%d&fifty_count=%d", five, ten, fifty));
+    }
+
+    public static String moneySupplyStop() {
+        return HTTPGetRequest.get(url, "func=money_supply_stop");
+    }
+
+    public static String moneyRefundSearch() {
+        return HTTPGetRequest.get(url, "func=money_refund_search");
+    }
+
+    public static String moneyRefundStop() {
+        return HTTPGetRequest.get(url, "func=money_refund_stop");
+    }
+
+    public static String getPrintSettings() {
+        return HTTPGetRequest.get(url, "func=print_search");
+    }
+
+    public static String updatePrintPaperLeft(int paper_left) {
+        return HTTPGetRequest.get(url, String.format("func=print_update_paper_left&pay_left=%d",
+                paper_left));
     }
 }

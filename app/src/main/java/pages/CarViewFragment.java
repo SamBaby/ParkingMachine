@@ -115,6 +115,9 @@ public class CarViewFragment extends Fragment {
             });
             MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             viewModel.getCars().observe(getViewLifecycleOwner(), this::setCarView);
+
+            TextView title = root.findViewById(R.id.text_title);
+            title.setText(viewModel.getLotName());
         }
         return root;
     }
@@ -459,13 +462,13 @@ public class CarViewFragment extends Fragment {
         }
         Map<Integer, Boolean> ret = new HashMap<>();
         if (holiday.get() != null) {
-            ret.put(1, holiday.get().getMonday() == 1);
-            ret.put(2, holiday.get().getTuesday() == 1);
-            ret.put(3, holiday.get().getWednesday() == 1);
-            ret.put(4, holiday.get().getThursday() == 1);
-            ret.put(5, holiday.get().getFriday() == 1);
-            ret.put(6, holiday.get().getSaturday() == 1);
-            ret.put(7, holiday.get().getSunday() == 1);
+            ret.put(2, holiday.get().getMonday() == 1);
+            ret.put(3, holiday.get().getTuesday() == 1);
+            ret.put(4, holiday.get().getWednesday() == 1);
+            ret.put(5, holiday.get().getThursday() == 1);
+            ret.put(6, holiday.get().getFriday() == 1);
+            ret.put(7, holiday.get().getSaturday() == 1);
+            ret.put(1, holiday.get().getSunday() == 1);
         }
         return ret;
     }
@@ -548,6 +551,7 @@ public class CarViewFragment extends Fragment {
     private boolean checkIfHoliday(Date date, Map<Integer, Boolean> dayHoliday) {
         boolean ret = false;
         Calendar c = Calendar.getInstance();
+        c.setTime(date);
         int weekday = c.get(Calendar.DAY_OF_WEEK);
         if (Boolean.TRUE.equals(dayHoliday.get(weekday))) {
             return true;

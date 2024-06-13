@@ -1,16 +1,30 @@
 package com.example.machine;
 
+import android.util.Log;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.ftdi.j2xx.FT_Device;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.Vector;
 
 import datamodel.CarInside;
+import datamodel.CouponSetting;
+import datamodel.MoneyCount;
+import datamodel.MoneyRefund;
+import datamodel.MoneySupply;
+import event.Var;
 import usb.UsbConnectionContext;
 import usb.UsbConnector;
+import util.ApacheServerRequest;
+import util.Util;
 
 public class MainViewModel extends ViewModel {
     private final MutableLiveData<Vector<CarInside>> cars = new MutableLiveData<>();
@@ -29,6 +43,7 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<Runnable> changePageRunnable = new MutableLiveData<>();
     private UsbConnector invoiceConnector;
     private UsbConnectionContext invoiceCxt;
+    private String lotName;
 
     public MutableLiveData<Vector<CarInside>> getCars() {
         return cars;
@@ -86,9 +101,7 @@ public class MainViewModel extends ViewModel {
         this.payWay.postValue(payWay);
         switch (payWay) {
             case 0:
-                startCoinPay = true;
-                setCoinInputEnable();
-                setPaperEnable();
+                setStartCoinPay();
                 break;
             case 1:
                 break;
@@ -97,6 +110,15 @@ public class MainViewModel extends ViewModel {
             default:
                 break;
         }
+    }
+
+    private void setStartCoinPay() {
+        tenPay = 0;
+        fiftyPay = 0;
+        hundredPay = 0;
+        startCoinPay = true;
+        setCoinInputEnable();
+        setPaperEnable();
     }
 
     public FT_Device getCoinInputDevice() {
@@ -159,6 +181,9 @@ public class MainViewModel extends ViewModel {
     private boolean paperReady = false;
     private boolean startEZPay = false;
     private boolean startLinePay = false;
+    private int tenPay = 0;
+    private int fiftyPay = 0;
+    private int hundredPay = 0;
 
     public boolean isStartCoinPay() {
         return startCoinPay;
@@ -175,6 +200,7 @@ public class MainViewModel extends ViewModel {
         int refund = totalPay.getValue() - totalMoney.getValue();
         if (refund > 0) {
             int fifty = refund / 50;
+            fiftyPay -= fifty;
             while (fifty > 0) {
                 if (fifty >= 10) {
                     fifty -= 10;
@@ -191,6 +217,7 @@ public class MainViewModel extends ViewModel {
                 }
             }
             int ten = refund % 50 / 10;
+            tenPay -= ten;
             while (ten > 0) {
                 if (ten >= 10) {
                     ten -= 10;
@@ -205,6 +232,14 @@ public class MainViewModel extends ViewModel {
                     ten -= 1;
                     refund10Coin1();
                 }
+            }
+            MoneyCount moneyCount = getMoneyCount();
+            if (moneyCount != null && (tenPay != 0 || fiftyPay != 0 || hundredPay != 0)) {
+                Thread t = new Thread(() -> {
+                    ApacheServerRequest.moneyCountUpdate(
+                            moneyCount.getFive(), moneyCount.getTen() + tenPay, moneyCount.getFifty() + fiftyPay, moneyCount.getHundred() + hundredPay);
+                });
+                t.start();
             }
         }
     }
@@ -245,9 +280,31 @@ public class MainViewModel extends ViewModel {
                             if (Arrays.equals(data, getCoin5)) {
                                 getTotalPay().postValue(getTotalPay().getValue() + 5);
                             } else if (Arrays.equals(data, getCoin10)) {
+                                tenPay += 1;
                                 getTotalPay().postValue(getTotalPay().getValue() + 10);
                             } else if (Arrays.equals(data, getCoin50)) {
+                                fiftyPay += 1;
                                 getTotalPay().postValue(getTotalPay().getValue() + 50);
+                            }
+                        }
+                    } else {
+                        byte[] data = new byte[5];
+                        if (len >= 5) {
+                            coinInputDevice.read(data, 5);
+                            if (Arrays.equals(enableCoinInputSuccess, data)) {
+                                coinReady = true;
+                            }
+                        }
+                    }
+                } else if (startCoinSupply) {
+                    if (coinReady) {
+                        byte[] data = new byte[6];
+                        if (len >= 6) {
+                            coinInputDevice.read(data, 6);
+                            if (Arrays.equals(data, getCoin10)) {
+                                tenSupply += 1;
+                            } else if (Arrays.equals(data, getCoin50)) {
+                                fiftySupply += 1;
                             }
                         }
                     } else {
@@ -296,6 +353,7 @@ public class MainViewModel extends ViewModel {
                         }
                         paperInputDevice.read(data, 1);
                         if (Arrays.equals(data, new byte[]{(byte) 0x40}) && paperReady) {
+                            hundredPay += 1;
                             paperInputDevice.write(getPaperConfirm);
                             getTotalPay().postValue(getTotalPay().getValue() + 100);
                         } else {
@@ -430,8 +488,8 @@ public class MainViewModel extends ViewModel {
     }
 
     public void refund50Coin1() {
-        coin10Device.write(new byte[]{(byte) 0x81});
-        coin10Device.write(new byte[]{0x40});
+        coin50Device.write(new byte[]{(byte) 0x81});
+        coin50Device.write(new byte[]{0x40});
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -440,8 +498,8 @@ public class MainViewModel extends ViewModel {
     }
 
     public void refund50Coin2() {
-        coin10Device.write(new byte[]{(byte) 0x81});
-        coin10Device.write(new byte[]{0x41});
+        coin50Device.write(new byte[]{(byte) 0x81});
+        coin50Device.write(new byte[]{0x41});
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -450,8 +508,8 @@ public class MainViewModel extends ViewModel {
     }
 
     public void refund50Coin5() {
-        coin10Device.write(new byte[]{(byte) 0x81});
-        coin10Device.write(new byte[]{0x42});
+        coin50Device.write(new byte[]{(byte) 0x81});
+        coin50Device.write(new byte[]{0x42});
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -469,12 +527,252 @@ public class MainViewModel extends ViewModel {
         }
     }
 
-    public String getPayment(){
+    public String getPayment() {
         String ret = "E";
-        if(payWay.getValue() == 1){
+        if (payWay.getValue() == 1) {
             ret = "C";
         }
         return ret;
     }
 
+    private void checkRefund() {
+        Thread t = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (coin10Device != null && coin50Device != null && coin10Device.isOpen() && coin50Device.isOpen()) {
+                    MoneyRefund refund = getMoneyRefund();
+                    MoneyCount moneyCount = getMoneyCount();
+                    if (moneyCount != null && refund != null && refund.getRefund() == 1) {
+                        int ten = refund.getTen();
+                        int fifty = refund.getFifty();
+                        ApacheServerRequest.moneyCountUpdate(moneyCount.getFive(), moneyCount.getTen() - ten, moneyCount.getFifty() - fifty, moneyCount.getHundred());
+                        while (ten > 0) {
+                            if (ten >= 10) {
+                                ten -= 10;
+                                refund10Coin10();
+                            } else if (ten >= 5) {
+                                ten -= 5;
+                                refund10Coin5();
+                            } else if (ten >= 2) {
+                                ten -= 2;
+                                refund10Coin2();
+                            } else {
+                                ten -= 1;
+                                refund10Coin1();
+                            }
+                        }
+                        while (fifty > 0) {
+                            if (fifty >= 10) {
+                                fifty -= 10;
+                                refund50Coin10();
+                            } else if (fifty >= 5) {
+                                fifty -= 5;
+                                refund50Coin5();
+                            } else if (fifty >= 2) {
+                                fifty -= 2;
+                                refund50Coin2();
+                            } else {
+                                fifty -= 1;
+                                refund50Coin1();
+                            }
+                        }
+                        ApacheServerRequest.moneyRefundStop();
+                    }
+                }
+            }
+        });
+        try {
+            t.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean startCoinSupply = false;
+    private int tenSupply = 0;
+    private int fiftySupply = 0;
+
+    private void checkSupply() {
+        Thread t = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (coinInputDevice != null && coinInputDevice.isOpen()) {
+                    MoneySupply supply = getMoneySupply();
+                    MoneyCount count = getMoneyCount();
+                    if (count != null && supply != null && supply.getSupply() == 1) {
+                        int ten = supply.getTen();
+                        int fifty = supply.getFifty();
+                        if (ten > 0 || fifty > 0) {
+                            startCoinSupply = true;
+                            tenSupply = 0;
+                            fiftySupply = 0;
+                            setCoinInputEnable();
+                            while (tenSupply < ten && fiftySupply < fifty) {
+                                try {
+                                    Thread.sleep(100);
+                                    ApacheServerRequest.moneySupplyUpdate(0, tenSupply, fiftySupply);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            startCoinSupply = false;
+                            setCoinInputDisable();
+                            coinReady = false;
+                            ApacheServerRequest.moneySupplyStop();
+                            ApacheServerRequest.moneyCountUpdate(count.getFive(), count.getTen() + tenSupply, count.getFifty() + fiftySupply, count.getHundred());
+                        }
+                    }
+                }
+            }
+        });
+        t.start();
+    }
+
+    private MoneyRefund getMoneyRefund() {
+        Var<MoneyRefund> moneyRefund = new Var<>();
+        Thread t = new Thread(() -> {
+            try {
+                String res = ApacheServerRequest.moneyRefundSearch();
+                if (!res.isEmpty()) {
+                    JSONArray array = new JSONArray(res);
+                    if (array.length() > 0) {
+                        JSONObject obj = array.getJSONObject(0);
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        MoneyRefund basic = gson.fromJson(obj.toString(), MoneyRefund.class);
+                        moneyRefund.set(basic);
+                    }
+                }
+            } catch (Exception e) {
+                Log.d("getLeftLots", "getLeftLots");
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return moneyRefund.get();
+    }
+
+    private MoneyCount getMoneyCount() {
+        Var<MoneyCount> moneyCount = new Var<>();
+        Thread t = new Thread(() -> {
+            try {
+                String res = ApacheServerRequest.moneyCountSearch();
+                if (!res.isEmpty()) {
+                    JSONArray array = new JSONArray(res);
+                    if (array.length() > 0) {
+                        JSONObject obj = array.getJSONObject(0);
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        MoneyCount count = gson.fromJson(obj.toString(), MoneyCount.class);
+                        moneyCount.set(count);
+                    }
+                }
+            } catch (Exception e) {
+                Log.d("getLeftLots", "getLeftLots");
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return moneyCount.get();
+    }
+
+    private void checkPrintCoupon() {
+        Thread t = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (invoiceCxt != null && invoiceConnector != null) {
+                    String res = ApacheServerRequest.getCouponSetting();
+                    if (res != null && !res.isEmpty()) {
+                        try {
+                            JSONArray array = new JSONArray(res);
+                            if (array.length() > 0) {
+                                JSONObject obj = array.getJSONObject(0);
+                                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                                CouponSetting setting = gson.fromJson(obj.toString(), CouponSetting.class);
+                                if (setting.getPrint() == 1) {
+                                    int paper = setting.getPaper();
+                                    Util.setPrintSettingPaperMinus(paper, 1);
+                                    for (int i = 0; i < paper; i++) {
+                                        String timeCode = String.format("%s_%d", setting.getCode(), i);
+                                        Util.couponPrint(getInvoiceConnector(), getInvoiceCxt(), setting, timeCode, getSimpleLotName());
+                                    }
+                                    ApacheServerRequest.setCouponSettingStop();
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
+        try {
+            t.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private MoneySupply getMoneySupply() {
+        Var<MoneySupply> moneySupplyVar = new Var<>();
+        Thread t = new Thread(() -> {
+            try {
+                String res = ApacheServerRequest.moneySupplySearch();
+                if (!res.isEmpty()) {
+                    JSONArray array = new JSONArray(res);
+                    if (array.length() > 0) {
+                        JSONObject obj = array.getJSONObject(0);
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        MoneySupply supply = gson.fromJson(obj.toString(), MoneySupply.class);
+                        moneySupplyVar.set(supply);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return moneySupplyVar.get();
+    }
+
+    public void startCheckThread() {
+        checkRefund();
+        checkSupply();
+        checkPrintCoupon();
+    }
+
+    public String getSimpleLotName() {
+        return lotName;
+    }
+
+    public void setLotName(String lotName) {
+        this.lotName = lotName;
+    }
+
+    public String getLotName() {
+        return lotName + "停車場";
+    }
 }

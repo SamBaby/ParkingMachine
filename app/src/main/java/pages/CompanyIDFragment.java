@@ -82,6 +82,8 @@ public class CompanyIDFragment extends Fragment {
         if (getActivity() != null) {
             viewPager = getActivity().findViewById(R.id.view_pager);
             viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+            TextView title = root.findViewById(R.id.text_title);
+            title.setText(viewModel.getLotName());
         }
         input = root.findViewById(R.id.input_company_id);
         initButtons(root, input);
@@ -162,18 +164,18 @@ public class CompanyIDFragment extends Fragment {
                         try {
                             String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
                                     data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
-                            if(invoice != null){
+                            if (invoice != null) {
                                 number.set(invoice);
                             }
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
                     new Thread(() -> {
                         ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
-                                viewModel.getDiscountMoney().getValue(), number.get(), "A");
+                                viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
                         ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
-                                viewModel.getTotalMoney().getValue(), number.get(), "A");
+                                viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
                     }).start();
                     viewModel.setSelectedCars(null);
                     viewPager.setCurrentItem(6);
@@ -194,10 +196,11 @@ public class CompanyIDFragment extends Fragment {
                         if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
                             try {
                                 String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                        data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());                                if(invoice != null){
+                                        data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                                if (invoice != null) {
                                     number.set(invoice);
                                 }
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }

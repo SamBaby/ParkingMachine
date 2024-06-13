@@ -97,6 +97,8 @@ public class PaymentChooseFragment extends Fragment {
             viewModel.getDiscountMoney().observe(getViewLifecycleOwner(), this::setDiscount);
             viewModel.getShouldPayMoney().observe(getViewLifecycleOwner(), this::setShouldPay);
             viewModel.getPayTime().observe(getViewLifecycleOwner(), this::setTimeOut);
+            TextView title = root.findViewById(R.id.text_title);
+            title.setText(viewModel.getLotName());
             ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
             Button btnCancel = root.findViewById(R.id.button_cancel);
             btnCancel.setOnClickListener(v -> {

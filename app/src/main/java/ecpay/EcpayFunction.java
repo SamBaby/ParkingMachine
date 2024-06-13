@@ -1,21 +1,24 @@
 package ecpay;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Picture;
 import android.os.Build;
+import android.os.Environment;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.Toast;
+import android.webkit.WebViewClient;
 
 import androidx.annotation.Nullable;
 
+import com.android.machine.R;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.izettle.html2bitmap.Html2Bitmap;
+import com.izettle.html2bitmap.content.WebViewContent;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,6 +26,8 @@ import org.w3c.dom.Document;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -37,6 +42,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Vector;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -49,9 +56,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import event.Var;
+import gui.ava.html.image.generator.HtmlImageGenerator;
 import invoice_print_machine.PrintCommand;
 import usb.UsbConnectionContext;
 import usb.UsbConnector;
+import util.Util;
 
 /**
  * �@�Ψ禡���O
@@ -537,7 +546,7 @@ public class EcpayFunction {
                             if (returnData.getInt("RtnCode") == 1) {
                                 invoiceNo.set(returnData.getString("InvoiceNo"));
                                 invoiceDate.set(currentDate.split(" ")[0]);
-                                if (carrierID == null) {
+                                if (carrierID.isEmpty()) {
                                     invoicePrint(activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
                                 }
                                 billNumber.set(invoiceNo.get());
@@ -594,6 +603,23 @@ public class EcpayFunction {
                         if (!url.isEmpty()) {
                             activity.runOnUiThread(() -> {
                                 WebView view = new WebView(activity);
+//                                Var<Boolean> ready = new Var<>(false);
+////                                WebView w = activity.findViewById(R.id.invoice_view);
+//                                view.setWebViewClient(new WebViewClient() {
+//                                    @Override
+//                                    public void onPageFinished(WebView view, String url) {
+//                                        Picture picture = view.capturePicture();
+//                                        Bitmap b = Bitmap.createBitmap(picture.getWidth(),
+//                                                picture.getHeight(), Bitmap.Config.ARGB_4444);
+//                                        Canvas c = new Canvas(b);
+//
+//                                        picture.draw(c);
+//                                        invoiceMachinePrint(activity, connector, cxt, b);
+//                                        view.setVisibility(View.GONE);
+//                                        view.destroy();
+//                                    }
+//                                });
+
                                 view.setPictureListener(new WebView.PictureListener() {
                                     boolean print = true;
 
@@ -620,10 +646,10 @@ public class EcpayFunction {
 
                                     }
                                 });
+
                                 // 启用 JavaScript
                                 WebSettings webSettings = view.getSettings();
                                 webSettings.setJavaScriptEnabled(true);
-
                                 // 加载 HTML 内容
                                 view.loadUrl(url);
                             });
@@ -688,7 +714,7 @@ public class EcpayFunction {
                     connector.WriteBytes(cxt, PrintCommand.rollForward05, 0);
                     connector.WriteBytes(cxt, PrintCommand.reset, 0);
                 });
-
+                Util.setPrintSettingPaperMinus(1, 0);
             } catch (Exception e) {
                 e.printStackTrace();
             }

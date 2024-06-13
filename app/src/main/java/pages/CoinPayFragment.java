@@ -97,6 +97,9 @@ public class CoinPayFragment extends Fragment {
                 ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                 viewPager.setCurrentItem(0, true);
             });
+
+            TextView title = root.findViewById(R.id.text_title);
+            title.setText(viewModel.getLotName());
         }
 
         return root;

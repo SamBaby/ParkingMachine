@@ -38,6 +38,8 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.gson)
     implementation(files("libs/d2xx.jar"))
+    implementation(files("libs/html2image-0.9.jar"))
+    implementation("com.izettle:html2bitmap:1.9")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
