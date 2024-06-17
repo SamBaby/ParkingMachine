@@ -301,7 +301,9 @@ public class MainViewModel extends ViewModel {
                         byte[] data = new byte[6];
                         if (len >= 6) {
                             coinInputDevice.read(data, 6);
-                            if (Arrays.equals(data, getCoin10)) {
+                            if (Arrays.equals(data, getCoin5)) {
+                                fiveSupply += 1;
+                            } else if (Arrays.equals(data, getCoin10)) {
                                 tenSupply += 1;
                             } else if (Arrays.equals(data, getCoin50)) {
                                 fiftySupply += 1;
@@ -368,6 +370,7 @@ public class MainViewModel extends ViewModel {
             }
         }).start();
     }
+
 
     private void read10Input() {
         new Thread(() -> {
@@ -593,6 +596,7 @@ public class MainViewModel extends ViewModel {
     }
 
     private boolean startCoinSupply = false;
+    private int fiveSupply = 0;
     private int tenSupply = 0;
     private int fiftySupply = 0;
 
@@ -608,17 +612,18 @@ public class MainViewModel extends ViewModel {
                     MoneySupply supply = getMoneySupply();
                     MoneyCount count = getMoneyCount();
                     if (count != null && supply != null && supply.getSupply() == 1) {
+                        int five = supply.getFive();
                         int ten = supply.getTen();
                         int fifty = supply.getFifty();
-                        if (ten > 0 || fifty > 0) {
+                        if (five > 0 || ten > 0 || fifty > 0) {
                             startCoinSupply = true;
                             tenSupply = 0;
                             fiftySupply = 0;
                             setCoinInputEnable();
-                            while (tenSupply < ten && fiftySupply < fifty) {
+                            while (tenSupply <= ten && fiftySupply <= fifty) {
                                 try {
                                     Thread.sleep(100);
-                                    ApacheServerRequest.moneySupplyUpdate(0, tenSupply, fiftySupply);
+                                    ApacheServerRequest.moneySupplyUpdate(fiveSupply, tenSupply, fiftySupply);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -627,7 +632,7 @@ public class MainViewModel extends ViewModel {
                             setCoinInputDisable();
                             coinReady = false;
                             ApacheServerRequest.moneySupplyStop();
-                            ApacheServerRequest.moneyCountUpdate(count.getFive(), count.getTen() + tenSupply, count.getFifty() + fiftySupply, count.getHundred());
+                            ApacheServerRequest.moneyCountUpdate(count.getFive() + fiveSupply, count.getTen() + tenSupply, count.getFifty() + fiftySupply, count.getHundred());
                         }
                     }
                 }

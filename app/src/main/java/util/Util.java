@@ -263,7 +263,8 @@ public class Util {
                 if (array.length() > 0) {
                     for (int i = 0; i < 1; i++) {
                         JSONObject obj = array.getJSONObject(i);
-                        data.set(new ECPayData(obj.getInt("print_status"), obj.getInt("plus_car_number"), obj.getString("merchant_id"), obj.getString("company_id"), obj.getString("hash_key"), obj.getString("hash_iv"), obj.getString("machine_id")));
+                        data.set(new ECPayData(obj.getInt("print_status"), obj.getInt("plus_car_number"), obj.getString("merchant_id"),
+                                obj.getString("company_id"), obj.getString("hash_key"), obj.getString("hash_iv"), obj.getString("machine_id"), obj.getInt("test")));
                     }
                 }
             } catch (Exception e) {
@@ -427,9 +428,9 @@ public class Util {
         if (setting != null) {
             Thread t = new Thread(() -> {
                 int paper = setting.getPay_left();
-                if(mode ==0){//print invoice
+                if (mode == 0) {//print invoice
                     paper = paper * setting.getPrint_invoice();
-                }else{//print coupon
+                } else {//print coupon
                     paper = paper * setting.getPrint_coupon();
                 }
                 ApacheServerRequest.updatePrintPaperLeft(paper - count);

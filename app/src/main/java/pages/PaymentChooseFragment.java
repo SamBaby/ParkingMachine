@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.machine.MainViewModel;
 import com.android.machine.R;
@@ -112,20 +113,9 @@ public class PaymentChooseFragment extends Fragment {
             btnCash.setOnClickListener(v -> {
                 if (viewModel.getCoin10Device() == null || viewModel.getCoin50Device() == null
                         || viewModel.getCoinInputDevice() == null || viewModel.getPaperInputDevice() == null) {
-                    CarInside car = viewModel.getSelectedCars().getValue();
-                    new Thread(() -> {
-                        ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
-                                viewModel.getDiscountMoney().getValue(), "", viewModel.getPayment());
-                    }).start();
                     viewModel.setSelectedCars(null);
-                    viewPager.setCurrentItem(6);
-                    // Schedule to change the page to index 0 after 10 seconds
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            viewPager.setCurrentItem(0);
-                        }
-                    }, 5000); // 10000 milliseconds = 10 seconds
+                    Toast.makeText(getActivity(), getString(R.string.coin_broken), Toast.LENGTH_SHORT).show();
+                    viewPager.setCurrentItem(0, true);
                 } else {
                     viewModel.setPayWay(0);
                     viewPager.setCurrentItem(3, true);

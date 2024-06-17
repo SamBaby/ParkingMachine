@@ -125,7 +125,7 @@ public class CarrierFragment extends Fragment {
                         if (check) {
                             ECPayData data = Util.getECPayData();
                             Var<String> number = new Var<>("");
-                            String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                            String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
                                     data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
                             CarInside car = viewModel.getSelectedCars().getValue();
                             if (invoice != null) {
@@ -159,6 +159,6 @@ public class CarrierFragment extends Fragment {
 
     private Boolean checkCarrierId(String id) {
         ECPayData data = Util.getECPayData();
-        return EcpayFunction.barcodeCheck(data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
+        return EcpayFunction.barcodeCheck(data.getTest() == 1, data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
     }
 }

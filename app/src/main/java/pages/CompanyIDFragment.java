@@ -162,7 +162,7 @@ public class CompanyIDFragment extends Fragment {
                     Var<String> number = new Var<>("");
                     if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
                         try {
-                            String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                            String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
                                     data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
                             if (invoice != null) {
                                 number.set(invoice);
@@ -195,7 +195,7 @@ public class CompanyIDFragment extends Fragment {
                         Var<String> number = new Var<>("");
                         if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
                             try {
-                                String invoice = EcpayFunction.invoiceIssueOffline(getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                                String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
                                         data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
                                 if (invoice != null) {
                                     number.set(invoice);
@@ -203,6 +203,9 @@ public class CompanyIDFragment extends Fragment {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                        }else{
+                            Toast.makeText(getActivity(), getString(R.string.coin_broken), Toast.LENGTH_SHORT).show();
+                            viewPager.setCurrentItem(0, true);
                         }
                         new Thread(() -> {
                             ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
@@ -232,6 +235,6 @@ public class CompanyIDFragment extends Fragment {
 
     private boolean checkCompanyID(String id) {
         ECPayData data = Util.getECPayData();
-        return EcpayFunction.taxIDCheck(data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
+        return EcpayFunction.taxIDCheck(data.getTest() == 1, data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
     }
 }

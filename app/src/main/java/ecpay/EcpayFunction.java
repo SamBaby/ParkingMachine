@@ -480,7 +480,15 @@ public class EcpayFunction {
         return false;
     }
 
-    public static String invoiceIssueOffline(Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID, int amount, String key, String IV) {
+    public static String getECPayUrl(boolean test) {
+        if (test) {
+            return "https://einvoice-stage.ecpay.com.tw";
+        } else {
+            return "https://einvoice.ecpay.com.tw";
+        }
+    }
+
+    public static String invoiceIssueOffline(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID, int amount, String key, String IV) {
         Var<String> billNumber = new Var<>();
         Thread t = new Thread(() -> {
             Var<String> invoiceNo = new Var<>();
@@ -538,7 +546,7 @@ public class EcpayFunction {
                 json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
                 String jsonText = gson.toJson(json);
                 try {
-                    String res = EcpayFunction.httpPost("https://einvoice-stage.ecpay.com.tw/B2CInvoice/OfflineIssue", jsonText, "UTF-8");
+                    String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/OfflineIssue", jsonText, "UTF-8");
                     if (res != null) {
                         JSONObject ret = new JSONObject(res);
                         if (!ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
@@ -547,7 +555,7 @@ public class EcpayFunction {
                                 invoiceNo.set(returnData.getString("InvoiceNo"));
                                 invoiceDate.set(currentDate.split(" ")[0]);
                                 if (carrierID.isEmpty()) {
-                                    invoicePrint(activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
+                                    invoicePrint(test, activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
                                 }
                                 billNumber.set(invoiceNo.get());
                             } else {
@@ -574,7 +582,7 @@ public class EcpayFunction {
         return billNumber.get();
     }
 
-    public static void invoicePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date) {
+    public static void invoicePrint(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date) {
         if (invoiceNumber != null && date != null && !invoiceNumber.isEmpty() && !date.isEmpty()) {
             Thread t = new Thread(() -> {
                 long unixTime = System.currentTimeMillis() / 1000L;
@@ -595,7 +603,7 @@ public class EcpayFunction {
                 System.out.println(jsonText);
 
                 try {
-                    String res = EcpayFunction.httpPost("https://einvoice-stage.ecpay.com.tw/B2CInvoice/InvoicePrint", jsonText, "UTF-8");
+                    String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/InvoicePrint", jsonText, "UTF-8");
                     if (res != null) {
                         JSONObject ret = new JSONObject(res);
                         JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
@@ -603,22 +611,6 @@ public class EcpayFunction {
                         if (!url.isEmpty()) {
                             activity.runOnUiThread(() -> {
                                 WebView view = new WebView(activity);
-//                                Var<Boolean> ready = new Var<>(false);
-////                                WebView w = activity.findViewById(R.id.invoice_view);
-//                                view.setWebViewClient(new WebViewClient() {
-//                                    @Override
-//                                    public void onPageFinished(WebView view, String url) {
-//                                        Picture picture = view.capturePicture();
-//                                        Bitmap b = Bitmap.createBitmap(picture.getWidth(),
-//                                                picture.getHeight(), Bitmap.Config.ARGB_4444);
-//                                        Canvas c = new Canvas(b);
-//
-//                                        picture.draw(c);
-//                                        invoiceMachinePrint(activity, connector, cxt, b);
-//                                        view.setVisibility(View.GONE);
-//                                        view.destroy();
-//                                    }
-//                                });
 
                                 view.setPictureListener(new WebView.PictureListener() {
                                     boolean print = true;
@@ -814,7 +806,7 @@ public class EcpayFunction {
         }
     }
 
-    public static boolean taxIDCheck(String merchantID, String key, String IV, String taxID) {
+    public static boolean taxIDCheck(boolean test, String merchantID, String key, String IV, String taxID) {
         Var<Boolean> ret = new Var<>(false);
         Thread t = new Thread(() -> {
             long unixTime = System.currentTimeMillis() / 1000L;
@@ -833,7 +825,7 @@ public class EcpayFunction {
             System.out.println(jsonText);
 
             try {
-                String res = EcpayFunction.httpPost("https://einvoice-stage.ecpay.com.tw/B2CInvoice/GetCompanyNameByTaxID", jsonText, "UTF-8");
+                String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/GetCompanyNameByTaxID", jsonText, "UTF-8");
                 if (res != null) {
                     JSONObject resJson = new JSONObject(res);
                     JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(resJson.getString("Data"), algorithm, key, IV));
@@ -854,7 +846,7 @@ public class EcpayFunction {
         return ret.get();
     }
 
-    public static boolean barcodeCheck(String merchantID, String key, String IV, String barcode) {
+    public static boolean barcodeCheck(boolean test, String merchantID, String key, String IV, String barcode) {
         Var<Boolean> ret = new Var<>(false);
         Thread t = new Thread(() -> {
             long unixTime = System.currentTimeMillis() / 1000L;
@@ -873,7 +865,7 @@ public class EcpayFunction {
             System.out.println(jsonText);
 
             try {
-                String res = EcpayFunction.httpPost("https://einvoice-stage.ecpay.com.tw/B2CInvoice/CheckBarcode", jsonText, "UTF-8");
+                String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/CheckBarcode", jsonText, "UTF-8");
                 if (res != null) {
                     JSONObject resObj = new JSONObject(res);
                     JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(resObj.getString("Data"), algorithm, key, IV));

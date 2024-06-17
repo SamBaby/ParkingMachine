@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -28,6 +29,7 @@ import java.util.Locale;
 import java.util.Vector;
 
 import datamodel.CarInside;
+import event.Var;
 import util.ApacheServerRequest;
 
 /**
@@ -98,6 +100,7 @@ public class SearchFragment extends Fragment {
         initButtons(root, input);
         Button btnSearch = root.findViewById(R.id.button_search);
         btnSearch.setOnClickListener(v -> {
+            Var<Boolean> found = new Var<>(false);
             String number = input.getText().toString();
             if (!number.isEmpty()) {
                 Thread t = new Thread(() -> {
@@ -105,7 +108,7 @@ public class SearchFragment extends Fragment {
                     if (req != null && !req.isEmpty()) {
                         try {
                             JSONArray array = new JSONArray(req);
-                            Vector<CarInside> cars = new Vector<CarInside>();
+                            Vector<CarInside> cars = new Vector<>();
                             for (int i = 0; i < array.length(); i++) {
                                 JSONObject obj = array.getJSONObject(i);
                                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -115,6 +118,7 @@ public class SearchFragment extends Fragment {
                                 }
                             }
                             if (!cars.isEmpty()) {
+                                found.set(true);
                                 ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                                 getActivity().runOnUiThread(() -> {
                                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
@@ -131,6 +135,9 @@ public class SearchFragment extends Fragment {
                 try {
                     t.start();
                     t.join();
+                    if (!found.get()) {
+                        Toast.makeText(getActivity(), getString(R.string.car_id_not_found), Toast.LENGTH_SHORT).show();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

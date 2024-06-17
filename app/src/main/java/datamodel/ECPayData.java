@@ -3,13 +3,15 @@ package datamodel;
 public class ECPayData {
     private int printStatus;
     private int plusCarNumber;
+    private String machineID;
     private String merchantID;
     private String companyID;
     private String hashKey;
     private String hashIV;
-    private String machineID;
+    private int test;
 
-    public ECPayData(int printStatus, int plusCarNumber, String merchantID, String companyID, String hashKey, String hashIV, String machineID) {
+    public ECPayData(int printStatus, int plusCarNumber, String merchantID, String companyID, String hashKey, String hashIV, String machineID, int test) {
+        this.setTest(test);
         this.setPrintStatus(printStatus);
         this.setPlusCarNumber(plusCarNumber);
         this.setMerchantID(merchantID);
@@ -73,5 +75,13 @@ public class ECPayData {
 
     public void setMachineID(String machineID) {
         this.machineID = machineID;
+    }
+
+    public int getTest() {
+        return test;
+    }
+
+    public void setTest(int test) {
+        this.test = test;
     }
 }

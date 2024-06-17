@@ -73,39 +73,39 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Thread t  = new Thread(()->{
+        Thread t = new Thread(() -> {
             try {
                 String res = ApacheServerRequest.getCompanyInformation();
-                if(res !=null && !res.isEmpty()){
+                if (res != null && !res.isEmpty()) {
                     JSONArray array = new JSONArray(res);
-                    if(array.length() > 0){
+                    if (array.length() > 0) {
                         JSONObject obj = array.getJSONObject(0);
-                        if(obj.has("lot_name")){
+                        if (obj.has("lot_name")) {
                             String lotName = obj.getString("lot_name");
                             model.setLotName(lotName);
                         }
                     }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
         try {
             t.start();
             t.join();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void checkDeviceThread() {
-        Thread t = new Thread(()->{
-            while (true){
+        Thread t = new Thread(() -> {
+            while (true) {
                 try {
                     Thread.sleep(5000);
                     handleFT4232H(coinInputManager);
                     handlePrintMachine();
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -129,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
         if (devCount >= 4 && coinInputDevice == null) {
             coinInputDevice = manager.openByIndex(this, 0);
             setCoinMachineConfig(coinInputDevice);
+
             paperInputDevice = manager.openByIndex(this, 1);
             setPaperMachineConfig(paperInputDevice);
 

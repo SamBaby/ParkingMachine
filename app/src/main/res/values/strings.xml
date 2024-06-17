@@ -52,4 +52,6 @@
     <string name = "company_carrier_not_same_time">使用統編請列印發票</string>
     <string name = "company_id_not_found">查無此統編</string>
     <string name = "carrier_id_not_found">查無此載具</string>
+    <string name = "car_id_not_found">查無相關車號</string>
+    <string name = "coin_broken">投幣機故障，請聯絡相關人員</string>
 </resources>
