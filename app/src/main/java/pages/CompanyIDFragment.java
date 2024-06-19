@@ -170,6 +170,8 @@ public class CompanyIDFragment extends Fragment {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+                    }else{
+                        Toast.makeText(getActivity(), getString(R.string.print_broken), Toast.LENGTH_SHORT).show();
                     }
                     new Thread(() -> {
                         ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
@@ -204,8 +206,7 @@ public class CompanyIDFragment extends Fragment {
                                 e.printStackTrace();
                             }
                         }else{
-                            Toast.makeText(getActivity(), getString(R.string.coin_broken), Toast.LENGTH_SHORT).show();
-                            viewPager.setCurrentItem(0, true);
+                            Toast.makeText(getActivity(), getString(R.string.print_broken), Toast.LENGTH_SHORT).show();
                         }
                         new Thread(() -> {
                             ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),

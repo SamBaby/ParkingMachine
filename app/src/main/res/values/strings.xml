@@ -54,4 +54,5 @@
     <string name = "carrier_id_not_found">查無此載具</string>
     <string name = "car_id_not_found">查無相關車號</string>
     <string name = "coin_broken">投幣機故障，請聯絡相關人員</string>
+    <string name = "print_broken">發票機故障，請聯絡相關人員</string>
 </resources>
