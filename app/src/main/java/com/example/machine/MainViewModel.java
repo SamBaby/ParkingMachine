@@ -450,6 +450,9 @@ public class MainViewModel extends ViewModel {
         this.invoiceCxt = cxt;
     }
 
+    /***
+     * 十元退幣1個
+     */
     public void refund10Coin1() {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x40});
@@ -460,6 +463,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /***
+     * 十元退幣2個
+     */
     public void refund10Coin2() {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x41});
@@ -470,6 +476,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /***
+     * 十元退幣5個
+     */
     public void refund10Coin5() {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x42});
@@ -480,6 +489,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /***
+     * 十元退幣10個
+     */
     public void refund10Coin10() {
         coin10Device.write(new byte[]{(byte) 0x81});
         coin10Device.write(new byte[]{0x43});
@@ -490,6 +502,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /***
+     * 50元退幣1個
+     */
     public void refund50Coin1() {
         coin50Device.write(new byte[]{(byte) 0x81});
         coin50Device.write(new byte[]{0x40});
@@ -500,6 +515,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /***
+     * 50元退幣2個
+     */
     public void refund50Coin2() {
         coin50Device.write(new byte[]{(byte) 0x81});
         coin50Device.write(new byte[]{0x41});
@@ -510,6 +528,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /***
+     * 50元退幣5個
+     */
     public void refund50Coin5() {
         coin50Device.write(new byte[]{(byte) 0x81});
         coin50Device.write(new byte[]{0x42});
@@ -520,6 +541,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /***
+     * 50元退幣10個
+     */
     public void refund50Coin10() {
         coin50Device.write(new byte[]{(byte) 0x81});
         coin50Device.write(new byte[]{0x43});
@@ -538,6 +562,9 @@ public class MainViewModel extends ViewModel {
         return ret;
     }
 
+    /***
+     * 每五秒從server資料庫檢查是否要退幣
+     */
     private void checkRefund() {
         Thread t = new Thread(() -> {
             while (true) {
@@ -600,6 +627,9 @@ public class MainViewModel extends ViewModel {
     private int tenSupply = 0;
     private int fiftySupply = 0;
 
+    /***
+     * 每五秒從server資料庫檢查是否要補充錢幣並開啟投幣機
+     */
     private void checkSupply() {
         Thread t = new Thread(() -> {
             while (true) {
@@ -695,6 +725,9 @@ public class MainViewModel extends ViewModel {
         return moneyCount.get();
     }
 
+    /***
+     * 每五秒檢查從server資料庫檢查是否要列印優惠券
+     */
     private void checkPrintCoupon() {
         Thread t = new Thread(() -> {
             while (true) {
@@ -763,6 +796,9 @@ public class MainViewModel extends ViewModel {
         return moneySupplyVar.get();
     }
 
+    /***
+     * 定期檢查各種機器連線及資料庫資料
+     */
     public void startCheckThread() {
         checkRefund();
         checkSupply();

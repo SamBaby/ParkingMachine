@@ -5,20 +5,15 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Picture;
 import android.os.Build;
-import android.os.Environment;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
 import androidx.annotation.Nullable;
 
-import com.android.machine.R;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.izettle.html2bitmap.Html2Bitmap;
-import com.izettle.html2bitmap.content.WebViewContent;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,8 +21,6 @@ import org.w3c.dom.Document;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -42,8 +35,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Vector;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -56,7 +47,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import event.Var;
-import gui.ava.html.image.generator.HtmlImageGenerator;
 import invoice_print_machine.PrintCommand;
 import usb.UsbConnectionContext;
 import usb.UsbConnector;
