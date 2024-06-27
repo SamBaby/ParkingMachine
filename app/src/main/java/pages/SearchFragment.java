@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Vector;
 
+import datamodel.BasicFee;
 import datamodel.CarInside;
 import event.Var;
 import util.ApacheServerRequest;
@@ -151,16 +152,48 @@ public class SearchFragment extends Fragment {
         if (car.getTime_pay() == null || car.getTime_pay().isEmpty()) {
             return true;
         }
-        try {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.TAIWAN);
-            Date nowDate = new Date();
-            Date payDate = format.parse(car.getTime_pay());
-            return (nowDate.getTime() - payDate.getTime()) / 1000 > 900;
-        } catch (Exception e) {
-            return true;
+        BasicFee basicFee = getBasicFee();
+        if (basicFee != null) {
+            try {
+                int unit = basicFee.getEnter_time_not_count() * 60;
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.TAIWAN);
+                Date nowDate = new Date();
+                Date payDate = format.parse(car.getTime_pay());
+                return (nowDate.getTime() - payDate.getTime()) / 1000 > unit;
+            } catch (Exception e) {
+                return true;
+            }
         }
+        return true;
+
     }
 
+    private BasicFee getBasicFee() {
+        Var<BasicFee> basicFee = new Var<>(null);
+        Thread t = new Thread(() -> {
+            String json = ApacheServerRequest.getBasicFee();
+            if (json != null) {
+                try {
+                    JSONArray array = new JSONArray(json);
+                    if (array.length() > 0) {
+                        JSONObject obj = array.getJSONObject(0);
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        BasicFee fee = gson.fromJson(obj.toString(), BasicFee.class);
+                        basicFee.set(fee);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return basicFee.get();
+    }
 
     private void initButtons(View view, TextView input) {
         Button button0 = view.findViewById(R.id.button_0);

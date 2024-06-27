@@ -473,6 +473,12 @@ public class CarViewFragment extends Fragment {
         return ret;
     }
 
+    /***
+     * calculate total parking fee
+     * @param startDate enter time
+     * @param endDate pay time
+     * @return total fee of the car
+     */
     public int calculateFee(Date startDate, Date endDate) {
         BasicFee basicFee = getBasicFee();
         Map<Integer, Boolean> dayHoliday = getDayHoliday();
