@@ -11,7 +11,7 @@ import datamodel.BasicSetting;
 import datamodel.DayHoliday;
 
 public class ApacheServerRequest {
-    public static final String url = "http://192.168.0.252:8080/function.php/";
+    public static final String url = "http://192.168.1.200:8080/function.php/";
 
     public static String getUsers() {
         return HTTPGetRequest.get(url, "func=user_search");
@@ -66,6 +66,16 @@ public class ApacheServerRequest {
         map.put("bill_number", billNumber);
         map.put("payment", payment);
         return HTTPGetRequest.post(url + "?func=cars_inside_update", map);
+    }
+
+    public static String setCarInsidePayWithServerTime(String carNumber, int cost, int discount, String billNumber, String payment) {
+        Map<String, String> map = new HashMap<>();
+        map.put("car_number", carNumber);
+        map.put("cost", String.valueOf(cost));
+        map.put("discount", String.valueOf(discount));
+        map.put("bill_number", billNumber);
+        map.put("payment", payment);
+        return HTTPGetRequest.post(url + "?func=cars_inside_update_with_server_time", map);
     }
 
     public static String getCams() {
@@ -268,5 +278,10 @@ public class ApacheServerRequest {
     public static String updatePrintPaperLeft(int paper_left) {
         return HTTPGetRequest.get(url, String.format("func=print_update_paper_left&pay_left=%d",
                 paper_left));
+    }
+
+    public static String getRegularCar(String carNumber) {
+        return HTTPGetRequest.get(url, String.format("func=regular_pass_single_search&car_number=%s",
+                carNumber));
     }
 }

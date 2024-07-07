@@ -29,12 +29,14 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 
 import datamodel.BasicFee;
 import datamodel.CarInside;
 import datamodel.DayHoliday;
+import datamodel.RegularPass;
 import event.Var;
 import util.ApacheServerRequest;
 import util.Util;
@@ -170,7 +172,9 @@ public class CarViewFragment extends Fragment {
             }
         }
     }
+
     private Handler handler = new Handler();
+
     private void setCar1(CarInside car) {
         if (getView() == null) {
             return;
@@ -194,9 +198,9 @@ public class CarViewFragment extends Fragment {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    if(setSelectedCar(car)){//shouldPay >0
+                    if (setSelectedCar(car)) {//shouldPay >0
                         viewPager.setCurrentItem(2, true);
-                    }else{
+                    } else {
                         viewModel.setSelectedCars(null);
                         viewPager.setCurrentItem(6);
                         // Schedule to change the page to index 0 after 10 seconds
@@ -243,9 +247,9 @@ public class CarViewFragment extends Fragment {
                     viewModel.setSelectedCars(car);
                     setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    if(setSelectedCar(car)){//shouldPay >0
+                    if (setSelectedCar(car)) {//shouldPay >0
                         viewPager.setCurrentItem(2, true);
-                    }else{
+                    } else {
                         viewModel.setSelectedCars(null);
                         viewPager.setCurrentItem(6);
                         // Schedule to change the page to index 0 after 10 seconds
@@ -291,9 +295,9 @@ public class CarViewFragment extends Fragment {
                     viewModel.setSelectedCars(car);
                     setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    if(setSelectedCar(car)){//shouldPay >0
+                    if (setSelectedCar(car)) {//shouldPay >0
                         viewPager.setCurrentItem(2, true);
-                    }else{
+                    } else {
                         viewModel.setSelectedCars(null);
                         viewPager.setCurrentItem(6);
                         // Schedule to change the page to index 0 after 10 seconds
@@ -339,9 +343,9 @@ public class CarViewFragment extends Fragment {
                     viewModel.setSelectedCars(car);
                     setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    if(setSelectedCar(car)){//shouldPay >0
+                    if (setSelectedCar(car)) {//shouldPay >0
                         viewPager.setCurrentItem(2, true);
-                    }else{
+                    } else {
                         viewModel.setSelectedCars(null);
                         viewPager.setCurrentItem(6);
                         // Schedule to change the page to index 0 after 10 seconds
@@ -549,13 +553,17 @@ public class CarViewFragment extends Fragment {
         boolean isHoliday = checkIfHoliday(startDate, dayHoliday);
         int basic = isHoliday ? basicFee.getHoliday_fee() : basicFee.getWeekday_fee();
         int most = isHoliday ? basicFee.getHoliday_most_fee() : basicFee.getWeekday_most_fee();
-        int unitMinute = basicFee.getAfter_one_hour_unit() == 0 ? 30 : 60;
+        int unitMinute = 360;
+        if (basicFee.getAfter_one_hour_unit() == 0) {
+            unitMinute = 30;
+        } else {
+            unitMinute = 60 * basicFee.getAfter_one_hour_unit();
+        }
         long duration = durationOfTheDayInMillis / (1000L * unitMinute * 60) + (durationOfTheDayInMillis % (1000L * unitMinute * 60) > 0 ? 1 : 0);
         return (int) Math.min(duration * basic, most);
     }
 
     private boolean checkIfHoliday(Date date, Map<Integer, Boolean> dayHoliday) {
-        boolean ret = false;
         Calendar c = Calendar.getInstance();
         c.setTime(date);
         int weekday = c.get(Calendar.DAY_OF_WEEK);
@@ -581,6 +589,15 @@ public class CarViewFragment extends Fragment {
         //calculate money
         try {
             Date timeInDate = (car.getTime_pay() != null && !car.getTime_pay().isEmpty()) ? format.parse(car.getTime_pay()) : format.parse(car.getTime_in());
+            RegularPass pass = getRegularCar(car.getCar_number());
+            if (pass != null) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                String dueString = pass.getDue_date();
+                Date dueDate = dateFormat.parse(dueString);
+                if (dueDate != null && timeInDate != null && dueDate.getTime() > timeInDate.getTime()) {
+                    timeInDate = dueDate;
+                }
+            }
             if (timeInDate != null) {
                 int totalMoney = calculateFee(timeInDate, nowDate);
                 if (getActivity() != null) {
@@ -593,7 +610,7 @@ public class CarViewFragment extends Fragment {
                     viewModel.setShouldPayMoney(Math.max(shouldPay, 0));
                     if (shouldPay > 0) {
                         return true;
-                    }else{
+                    } else {
                         new Thread(() -> {
                             ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
                                     viewModel.getDiscountMoney().getValue(), "", "D");
@@ -607,4 +624,28 @@ public class CarViewFragment extends Fragment {
         return false;
     }
 
+    private RegularPass getRegularCar(String carNumber) {
+        Var<RegularPass> ret = new Var<>();
+        Thread t = new Thread(() -> {
+            String json = ApacheServerRequest.getRegularCar(carNumber);
+            try {
+                JSONArray array = new JSONArray(json);
+                if (array.length() > 0) {
+                    JSONObject obj = array.getJSONObject(0);
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    RegularPass pass = gson.fromJson(obj.toString(), RegularPass.class);
+                    ret.set(pass);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ret.get();
+    }
 }

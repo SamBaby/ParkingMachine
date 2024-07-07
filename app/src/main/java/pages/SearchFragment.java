@@ -30,6 +30,7 @@ import java.util.Vector;
 
 import datamodel.BasicFee;
 import datamodel.CarInside;
+import datamodel.RegularPass;
 import event.Var;
 import util.ApacheServerRequest;
 
@@ -114,7 +115,7 @@ public class SearchFragment extends Fragment {
                                 JSONObject obj = array.getJSONObject(i);
                                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                                 CarInside car = gson.fromJson(obj.toString(), CarInside.class);
-                                if (checkShouldPay(car)) {
+                                if (checkShouldPay(car) && !isRegularCar(car.getCar_number())) {
                                     cars.add(car);
                                 }
                             }
@@ -247,5 +248,36 @@ public class SearchFragment extends Fragment {
         buttonClear.setOnClickListener(v -> {
             input.setText("");
         });
+    }
+
+    private boolean isRegularCar(String carNumber) {
+        Var<Boolean> ret = new Var<>(false);
+        Thread t = new Thread(() -> {
+            String json = ApacheServerRequest.getRegularCar(carNumber);
+            try {
+                JSONArray array = new JSONArray(json);
+                if (array.length() > 0) {
+                    JSONObject obj = array.getJSONObject(0);
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    RegularPass pass = gson.fromJson(obj.toString(), RegularPass.class);
+                    String dueDate = pass.getDue_date();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.TAIWAN);
+                    Date date = formatter.parse(dueDate);
+                    Date now = new Date();
+                    if(date !=null && date.getTime() >= now.getTime()){
+                        ret.set(true);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ret.get();
     }
 }
