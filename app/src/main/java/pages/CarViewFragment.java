@@ -499,7 +499,7 @@ public class CarViewFragment extends Fragment {
         long durationInMillis = endDate.getTime() - startDate.getTime();
 
         // If duration is negative, no pay
-        if ((durationInMillis / (1000 * 60)) <= 0) {
+        if ((durationInMillis / 1000) <= 0) {
             return 0;
         }
 
@@ -612,7 +612,7 @@ public class CarViewFragment extends Fragment {
                         return true;
                     } else {
                         new Thread(() -> {
-                            ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                            ApacheServerRequest.setCarInsidePayWithServerTime(car.getCar_number(), viewModel.getTotalMoney().getValue(),
                                     viewModel.getDiscountMoney().getValue(), "", "D");
                         }).start();
                     }

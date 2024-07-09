@@ -132,7 +132,7 @@ public class CarrierFragment extends Fragment {
                                 number.set(invoice);
                             }
                             new Thread(() -> {
-                                ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                                ApacheServerRequest.setCarInsidePayWithServerTime(car.getCar_number(), viewModel.getTotalMoney().getValue(),
                                         viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
                                 ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
                                         viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());

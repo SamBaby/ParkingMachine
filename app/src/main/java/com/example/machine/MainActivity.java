@@ -63,10 +63,10 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         Var<Boolean> keepTry = new Var<>(true);
-        while(keepTry.get()){
-            Thread t = new Thread(()->{
+        while (keepTry.get()) {
+            Thread t = new Thread(() -> {
                 String ret = ApacheServerRequest.getUsers();
-                if(ret !=null && !ret.isEmpty()){
+                if (ret != null && !ret.isEmpty()) {
                     keepTry.set(false);
                 }
             });
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 t.start();
                 t.join();
                 Thread.sleep(1000);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -141,30 +141,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleFT4232H(D2xxManager manager) {
-        if (coinInputDevice == null || paperInputDevice ==null||coin10Device ==null|| coin50Device ==null){
+        if (coinInputDevice == null || paperInputDevice == null || coin10Device == null || coin50Device == null) {
             int devCount = 0;
             manager.setVIDPID(1027, 24593);
             devCount = manager.createDeviceInfoList(this);
             if (devCount >= 4) {
-                try{
+                try {
                     System.out.println("connecting FTDI");
-                    if(coinInputDevice == null){
+                    if (coinInputDevice == null) {
                         coinInputDevice = manager.openByIndex(this, 0);
                     }
-                    if(paperInputDevice == null){
+                    if (paperInputDevice == null) {
                         paperInputDevice = manager.openByIndex(this, 1);
                     }
-                    if(coin10Device ==null){
+                    if (coin10Device == null) {
                         coin10Device = manager.openByIndex(this, 2);
                     }
-                    if(coin50Device == null){
+                    if (coin50Device == null) {
                         coin50Device = manager.openByIndex(this, 3);
                     }
 
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if(coinInputDevice != null && paperInputDevice != null && coin10Device != null && coin50Device != null){
+                if (coinInputDevice != null && paperInputDevice != null && coin10Device != null && coin50Device != null) {
                     System.out.println("success FTDI");
                     setCoinMachineConfig(coinInputDevice);
 
@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                     model.setPaperInputDevice(paperInputDevice);
                     model.setCoin10Device(coin10Device);
                     model.setCoin50Device(coin50Device);
-                }else {
+                } else {
                     System.out.println("fail FTDI");
                 }
             }

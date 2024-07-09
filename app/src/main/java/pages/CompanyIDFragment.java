@@ -170,11 +170,11 @@ public class CompanyIDFragment extends Fragment {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }else{
+                    } else {
                         Toast.makeText(getActivity(), getString(R.string.print_broken), Toast.LENGTH_SHORT).show();
                     }
                     new Thread(() -> {
-                        ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                        ApacheServerRequest.setCarInsidePayWithServerTime(car.getCar_number(), viewModel.getTotalMoney().getValue(),
                                 viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
                         ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
                                 viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
@@ -205,11 +205,11 @@ public class CompanyIDFragment extends Fragment {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        }else{
+                        } else {
                             Toast.makeText(getActivity(), getString(R.string.print_broken), Toast.LENGTH_SHORT).show();
                         }
                         new Thread(() -> {
-                            ApacheServerRequest.setCarInsidePay(car.getCar_number(), viewModel.getPayTime().getValue(), viewModel.getTotalMoney().getValue(),
+                            ApacheServerRequest.setCarInsidePayWithServerTime(car.getCar_number(), viewModel.getTotalMoney().getValue(),
                                     viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
                             ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
                                     viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
