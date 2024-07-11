@@ -3,6 +3,8 @@ package com.example.machine;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -20,8 +22,9 @@ public class BootReceiver extends BroadcastReceiver {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
                 Intent activityIntent = new Intent(context, MainActivity.class);
-                activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 context.startActivity(activityIntent);
             });
         }

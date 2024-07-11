@@ -2,6 +2,7 @@ package pages;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -14,7 +15,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.machine.MainViewModel;
 import com.android.machine.R;
@@ -24,6 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import datamodel.CarInside;
+import datamodel.ECPayData;
+import ecpay.EcpayFunction;
 import event.Var;
 import util.ApacheServerRequest;
 import util.Util;
@@ -43,6 +48,8 @@ public class CoinPayFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private ProgressBar progressBar;
+    private Handler handler = new Handler();
 
     public CoinPayFragment() {
         // Required empty public constructor
@@ -100,6 +107,7 @@ public class CoinPayFragment extends Fragment {
 
             TextView title = root.findViewById(R.id.text_title);
             title.setText(viewModel.getLotName());
+            progressBar = root.findViewById(R.id.progressBar);
         }
 
         return root;
@@ -128,14 +136,13 @@ public class CoinPayFragment extends Fragment {
     }
 
     private void refreshTotalPay(Integer integer) {
-        if (getView() != null) {
+        if (getView() != null && getActivity() != null) {
             TextView text = getView().findViewById(R.id.text_already_pay);
             text.setText(String.valueOf(integer));
             if (viewModel.isStartCoinPay() && integer >= viewModel.getTotalMoney().getValue()) {
                 if (getActivity() != null) {
                     viewModel.stopCoinPay();
-                    ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                    viewPager.setCurrentItem(4, true);
+                    new BackgroundTask().execute();
                 }
             }
         }
@@ -210,4 +217,35 @@ public class CoinPayFragment extends Fragment {
         return bitmap.get();
     }
 
+    private class BackgroundTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // Show the progress bar before starting the background task
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            // Perform the background task here
+            // For example, a long-running operation like downloading data or heavy computation
+            // Simulating a long-running task with Thread.sleep()
+            try {
+                Thread.sleep(2000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
+            handler.postDelayed(() -> viewPager.setCurrentItem(4), 0);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            // Hide the progress bar after completing the background task
+            progressBar.setVisibility(View.GONE);
+        }
+    }
 }

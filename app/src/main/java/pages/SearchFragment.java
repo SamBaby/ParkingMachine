@@ -82,7 +82,7 @@ public class SearchFragment extends Fragment {
         }
 
     }
-
+    private MainViewModel viewModel;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -96,7 +96,7 @@ public class SearchFragment extends Fragment {
             imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
 
             TextView title = root.findViewById(R.id.text_title);
-            MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+            viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             title.setText(viewModel.getLotName());
         }
         initButtons(root, input);
@@ -104,7 +104,7 @@ public class SearchFragment extends Fragment {
         btnSearch.setOnClickListener(v -> {
             Var<Boolean> found = new Var<>(false);
             String number = input.getText().toString();
-            if (!number.isEmpty()) {
+            if (!number.isEmpty() && number.length() >= 2) {
                 Thread t = new Thread(() -> {
                     String req = ApacheServerRequest.getCarInside(number);
                     if (req != null && !req.isEmpty()) {
@@ -143,9 +143,32 @@ public class SearchFragment extends Fragment {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }else{
+                Toast.makeText(getActivity(), getString(R.string.car_number_over_two), Toast.LENGTH_SHORT).show();
             }
         });
+        Thread t = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                    if(viewModel != null){
+                        TextView txt_coin = root.findViewById(R.id.txt_coin);
+                        TextView txt_paper = root.findViewById(R.id.txt_paper);
+                        TextView txt_10 = root.findViewById(R.id.txt_10);
+                        TextView txt_50 = root.findViewById(R.id.txt_50);
+                        TextView txt_print = root.findViewById(R.id.txt_print);
+                        TextView txt_server = root.findViewById(R.id.txt_server);
+                        TextView txt_internet = root.findViewById(R.id.txt_internet);
+                        if(viewModel.getInvoiceCxt() == null){
 
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
         return root;
     }
 
@@ -264,7 +287,7 @@ public class SearchFragment extends Fragment {
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.TAIWAN);
                     Date date = formatter.parse(dueDate);
                     Date now = new Date();
-                    if(date !=null && date.getTime() >= now.getTime()){
+                    if (date != null && date.getTime() >= now.getTime()) {
                         ret.set(true);
                     }
                 }

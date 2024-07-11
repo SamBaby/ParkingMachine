@@ -9,6 +9,7 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +27,7 @@ import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -115,13 +117,12 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
     private void checkDeviceThread() {
         Thread t = new Thread(() -> {
             while (true) {
                 try {
                     Thread.sleep(5000);
-//                    handleFT4232H(coinInputManager);
+                    handleFT4232H(coinInputManager);
                     handlePrintMachine();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -141,23 +142,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleFT4232H(D2xxManager manager) {
-        if (coinInputDevice == null || paperInputDevice == null || coin10Device == null || coin50Device == null) {
+        if (model.getCoinInputDevice() == null || model.getPaperInputDevice() == null || model.getCoin10Device() == null || model.getCoin50Device() == null) {
             int devCount = 0;
             manager.setVIDPID(1027, 24593);
             devCount = manager.createDeviceInfoList(this);
             if (devCount >= 4) {
                 try {
                     System.out.println("connecting FTDI");
-                    if (coinInputDevice == null) {
+                    if (model.getCoinInputDevice() == null) {
                         coinInputDevice = manager.openByIndex(this, 0);
                     }
-                    if (paperInputDevice == null) {
+                    if (model.getPaperInputDevice() == null) {
                         paperInputDevice = manager.openByIndex(this, 1);
                     }
-                    if (coin10Device == null) {
+                    if (model.getCoin10Device() == null) {
                         coin10Device = manager.openByIndex(this, 2);
                     }
-                    if (coin50Device == null) {
+                    if (model.getCoin50Device() == null) {
                         coin50Device = manager.openByIndex(this, 3);
                     }
 
@@ -182,6 +183,18 @@ public class MainActivity extends AppCompatActivity {
                     model.setCoin50Device(coin50Device);
                 } else {
                     System.out.println("fail FTDI");
+                    if (coinInputDevice == null) {
+                        System.out.println("coin fail");
+                    }
+                    if (paperInputDevice == null) {
+                        System.out.println("paper fail");
+                    }
+                    if (coin10Device == null) {
+                        System.out.println("10 fail");
+                    }
+                    if (coin50Device == null) {
+                        System.out.println("50 fail");
+                    }
                 }
             }
         }
@@ -219,6 +232,28 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        System.out.println("main activity destroy");
+        if (coinInputDevice != null) {
+            coinInputDevice.close();
+        }
+        if (paperInputDevice != null) {
+            paperInputDevice.close();
+        }
+        if (coin10Device != null) {
+            coin10Device.close();
+        }
+        if (coin50Device != null) {
+            coin50Device.close();
+        }
+        if (printConnector != null && printCxt != null) {
+            System.out.println("disconnect print machine");
+            printConnector.Disconnect(1027, 24593);
         }
     }
 }

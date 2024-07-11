@@ -1,11 +1,13 @@
 package pages;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,7 +44,7 @@ public class CompanyIDFragment extends Fragment {
     ViewPager viewPager;
     MainViewModel viewModel;
     private Handler handler = new Handler();
-
+    private ProgressBar progressBar;
     public CompanyIDFragment() {
         // Required empty public constructor
     }
@@ -87,6 +89,7 @@ public class CompanyIDFragment extends Fragment {
         }
         input = root.findViewById(R.id.input_company_id);
         initButtons(root, input);
+        progressBar = root.findViewById(R.id.progressBar);
         return root;
     }
 
@@ -154,6 +157,29 @@ public class CompanyIDFragment extends Fragment {
         });
         Button buttonPrint = view.findViewById(R.id.button_print);
         buttonPrint.setOnClickListener(v -> {
+            new BackgroundTask().execute();
+        });
+    }
+
+    private boolean checkCompanyID(String id) {
+        ECPayData data = Util.getECPayData();
+        return EcpayFunction.taxIDCheck(data.getTest() == 1, data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
+    }
+
+    private class BackgroundTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // Show the progress bar before starting the background task
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            // Perform the background task here
+            // For example, a long-running operation like downloading data or heavy computation
+            // Simulating a long-running task with Thread.sleep()
             String id = input.getText().toString();
             ECPayData data = Util.getECPayData();
             if (id.isEmpty()) {
@@ -180,14 +206,9 @@ public class CompanyIDFragment extends Fragment {
                                 viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
                     }).start();
                     viewModel.setSelectedCars(null);
-                    viewPager.setCurrentItem(6);
+                    handler.postDelayed(()-> viewPager.setCurrentItem(6),0);
                     // Schedule to change the page to index 0 after 10 seconds
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            viewPager.setCurrentItem(0);
-                        }
-                    }, 5000); // 10000 milliseconds = 10 seconds
+                    handler.postDelayed(() -> viewPager.setCurrentItem(0), 5000); // 10000 milliseconds = 10 seconds
                 }
             } else {
                 boolean idPass = checkCompanyID(id);
@@ -216,26 +237,23 @@ public class CompanyIDFragment extends Fragment {
                         }).start();
                         input.setText("");
                         viewModel.setSelectedCars(null);
-                        viewPager.setCurrentItem(6);
+                        handler.postDelayed(()-> viewPager.setCurrentItem(6),0);
                         // Schedule to change the page to index 0 after 10 seconds
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                viewPager.setCurrentItem(0);
-                            }
-                        }, 5000); // 10000 milliseconds = 10 seconds
+                        handler.postDelayed(() -> viewPager.setCurrentItem(0), 5000); // 10000 milliseconds = 10 seconds
                     }
                 } else {
                     Toast.makeText(getActivity(), getString(R.string.company_id_not_found), Toast.LENGTH_SHORT).show();
                     input.setText("");
                 }
             }
+            return null;
+        }
 
-        });
-    }
-
-    private boolean checkCompanyID(String id) {
-        ECPayData data = Util.getECPayData();
-        return EcpayFunction.taxIDCheck(data.getTest() == 1, data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            // Hide the progress bar after completing the background task
+            progressBar.setVisibility(View.GONE);
+        }
     }
 }

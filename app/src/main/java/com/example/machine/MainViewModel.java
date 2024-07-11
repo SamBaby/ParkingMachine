@@ -4,7 +4,9 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.viewpager.widget.ViewPager;
 
+import com.android.machine.R;
 import com.ftdi.j2xx.FT_Device;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -113,6 +115,7 @@ public class MainViewModel extends ViewModel {
     }
 
     private void setStartCoinPay() {
+        fivePay = 0;
         tenPay = 0;
         fiftyPay = 0;
         hundredPay = 0;
@@ -181,6 +184,7 @@ public class MainViewModel extends ViewModel {
     private boolean paperReady = false;
     private boolean startEZPay = false;
     private boolean startLinePay = false;
+    private int fivePay = 0;
     private int tenPay = 0;
     private int fiftyPay = 0;
     private int hundredPay = 0;
@@ -234,10 +238,10 @@ public class MainViewModel extends ViewModel {
                 }
             }
             MoneyCount moneyCount = getMoneyCount();
-            if (moneyCount != null && (tenPay != 0 || fiftyPay != 0 || hundredPay != 0)) {
+            if (moneyCount != null && (fivePay != 0 || tenPay != 0 || fiftyPay != 0 || hundredPay != 0)) {
                 Thread t = new Thread(() -> {
                     ApacheServerRequest.moneyCountUpdate(
-                            moneyCount.getFive(), moneyCount.getTen() + tenPay, moneyCount.getFifty() + fiftyPay, moneyCount.getHundred() + hundredPay);
+                            moneyCount.getFive() + fivePay, moneyCount.getTen() + tenPay, moneyCount.getFifty() + fiftyPay, moneyCount.getHundred() + hundredPay);
                 });
                 t.start();
             }
@@ -278,6 +282,7 @@ public class MainViewModel extends ViewModel {
                         if (len >= 6) {
                             coinInputDevice.read(data, 6);
                             if (Arrays.equals(data, getCoin5)) {
+                                fivePay += 1;
                                 getTotalPay().postValue(getTotalPay().getValue() + 5);
                             } else if (Arrays.equals(data, getCoin10)) {
                                 tenPay += 1;

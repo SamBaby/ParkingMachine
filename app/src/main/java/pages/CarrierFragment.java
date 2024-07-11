@@ -1,6 +1,7 @@
 package pages;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +49,8 @@ public class CarrierFragment extends Fragment {
     private ViewPager viewPager;
     MainViewModel viewModel;
     private Handler handler = new Handler();
-
+    private ProgressBar progressBar;
+private EditText editText;
     public CarrierFragment() {
         // Required empty public constructor
     }
@@ -84,7 +87,8 @@ public class CarrierFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_carrier, container, false);
-        EditText editText = root.findViewById(R.id.edittext_carrier);
+        editText = root.findViewById(R.id.edittext_carrier);
+        progressBar = root.findViewById(R.id.progressBar);
         if (getActivity() != null) {
             viewPager = getActivity().findViewById(R.id.view_pager);
             viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
@@ -160,5 +164,53 @@ public class CarrierFragment extends Fragment {
     private Boolean checkCarrierId(String id) {
         ECPayData data = Util.getECPayData();
         return EcpayFunction.barcodeCheck(data.getTest() == 1, data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
+    }
+
+    private class BackgroundTask extends AsyncTask<Void, Void, Void> {
+        private String id;
+        public BackgroundTask(String id){
+            this.id = id;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // Show the progress bar before starting the background task
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            // Perform the background task here
+            // For example, a long-running operation like downloading data or heavy computation
+            // Simulating a long-running task with Thread.sleep()
+            ECPayData data = Util.getECPayData();
+            Var<String> number = new Var<>("");
+            String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                    data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+            CarInside car = viewModel.getSelectedCars().getValue();
+            if (invoice != null) {
+                number.set(invoice);
+            }
+            new Thread(() -> {
+                ApacheServerRequest.setCarInsidePayWithServerTime(car.getCar_number(), viewModel.getTotalMoney().getValue(),
+                        viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
+                ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
+                        viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
+            }).start();
+            editText.setText("");
+            viewModel.setSelectedCars(null);
+            handler.postDelayed(() -> viewPager.setCurrentItem(6), 0);
+            // Schedule to change the page to index 0 after 10 seconds
+            handler.postDelayed(() -> viewPager.setCurrentItem(0), 5000); // 10000 milliseconds = 10 seconds
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            // Hide the progress bar after completing the background task
+            progressBar.setVisibility(View.GONE);
+        }
     }
 }

@@ -55,4 +55,5 @@
     <string name = "car_id_not_found">查無相關車號</string>
     <string name = "coin_broken">投幣機故障，請聯絡相關人員</string>
     <string name = "print_broken">發票機故障，請聯絡相關人員</string>
+    <string name = "car_number_over_two">請輸入至少兩位數號碼</string>
 </resources>

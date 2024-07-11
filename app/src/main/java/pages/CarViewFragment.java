@@ -58,6 +58,9 @@ public class CarViewFragment extends Fragment {
     private String mParam2;
     private int index = 0;
     private Vector<CarInside> cars;
+    Button btnPrevious;
+    Button btnNext;
+    Button btnCancel;
 
     public CarViewFragment() {
         // Required empty public constructor
@@ -95,9 +98,9 @@ public class CarViewFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_car_view, container, false);
-        Button btnCancel = root.findViewById(R.id.button_cancel);
-        Button btnPrevious = root.findViewById(R.id.button_previous);
-        Button btnNext = root.findViewById(R.id.button_next);
+        btnCancel = root.findViewById(R.id.button_cancel);
+        btnPrevious = root.findViewById(R.id.button_previous);
+        btnNext = root.findViewById(R.id.button_next);
         if (getActivity() != null) {
             ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
             btnCancel.setOnClickListener(v -> {
@@ -132,6 +135,17 @@ public class CarViewFragment extends Fragment {
 
     private void refreshCarView() {
         if (cars != null && !cars.isEmpty()) {
+            if (index == 0) {
+                btnPrevious.setVisibility(View.INVISIBLE);
+            } else {
+                btnPrevious.setVisibility(View.VISIBLE);
+            }
+            if (index * 4 + 4 >= cars.size()) {
+                btnNext.setVisibility(View.INVISIBLE);
+            } else {
+                btnNext.setVisibility(View.VISIBLE);
+            }
+
             for (int i = index * 4; i < index * 4 + 4; i++) {
                 if (i < cars.size()) {
                     CarInside car = cars.get(i);
