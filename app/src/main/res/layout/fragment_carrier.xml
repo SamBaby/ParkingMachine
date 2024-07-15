@@ -43,10 +43,11 @@
                 android:background="@drawable/input_rounded_corner_background"
                 android:gravity="end|center"
                 android:inputType="text"
-                android:textSize="100sp"
+                android:textSize="40sp"
                 tools:ignore="Autofill,LabelFor" />
 
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_clear"
                 android:layout_width="0dp"
                 android:layout_height="100dp"
                 android:layout_gravity="center"

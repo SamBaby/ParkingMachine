@@ -2,11 +2,14 @@ package pages;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -147,31 +150,26 @@ public class SearchFragment extends Fragment {
                 Toast.makeText(getActivity(), getString(R.string.car_number_over_two), Toast.LENGTH_SHORT).show();
             }
         });
-        Thread t = new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(5000);
-                    if(viewModel != null){
-                        TextView txt_coin = root.findViewById(R.id.txt_coin);
-                        TextView txt_paper = root.findViewById(R.id.txt_paper);
-                        TextView txt_10 = root.findViewById(R.id.txt_10);
-                        TextView txt_50 = root.findViewById(R.id.txt_50);
-                        TextView txt_print = root.findViewById(R.id.txt_print);
-                        TextView txt_server = root.findViewById(R.id.txt_server);
-                        TextView txt_internet = root.findViewById(R.id.txt_internet);
-                        if(viewModel.getInvoiceCxt() == null){
-
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        t.start();
+        setNoneEditText(root);
         return root;
     }
+    private void setNoneEditText(View root){
+        EditText txt = root.findViewById(R.id.edit_none);
+        txt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                s.clear();
+            }
+        });
+    }
     private boolean checkShouldPay(CarInside car) {
         if (car.getTime_pay() == null || car.getTime_pay().isEmpty()) {
             return true;

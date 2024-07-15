@@ -1,6 +1,7 @@
 package com.example.machine;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -17,6 +18,7 @@ import org.json.JSONObject;
 import java.util.Arrays;
 import java.util.Vector;
 
+import datamodel.BasicFee;
 import datamodel.CarInside;
 import datamodel.CouponSetting;
 import datamodel.MoneyCount;
@@ -36,6 +38,7 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<Integer> totalMoney = new MutableLiveData<>(0);
     private final MutableLiveData<Integer> payWay = new MutableLiveData<>(0);
     private final MutableLiveData<String> payTime = new MutableLiveData<>();
+    private final MutableLiveData<Integer> exitCountTime = new MutableLiveData<>(15);
     private FT_Device coinInputDevice;
     private FT_Device paperInputDevice;
     private FT_Device coin10Device;
@@ -46,6 +49,17 @@ public class MainViewModel extends ViewModel {
     private UsbConnector invoiceConnector;
     private UsbConnectionContext invoiceCxt;
     private String lotName;
+
+    public void setExitCountTime() {
+        BasicFee basicFee = getBasicFee();
+        if (basicFee != null) {
+            this.exitCountTime.postValue(basicFee.getEnter_time_not_count());
+        }
+    }
+
+    public MutableLiveData<Integer> getExitCountTime() {
+        return exitCountTime;
+    }
 
     public MutableLiveData<Vector<CarInside>> getCars() {
         return cars;
@@ -193,6 +207,68 @@ public class MainViewModel extends ViewModel {
         return startCoinPay;
     }
 
+    public boolean cancelCoinPay() {
+        boolean ret = true;
+        setCoinInputDisable();
+        setPaperDisable();
+        startCoinPay = false;
+        coinReady = false;
+        paperReady = false;
+
+        //check refund
+        if (totalPay.getValue() > 0) {
+            int fifty = totalPay.getValue() / 50;
+            int ten = totalPay.getValue() % 50 / 10;
+            MoneyCount moneyCount = getMoneyCount();
+            if (moneyCount != null && (moneyCount.getFifty() + fiftyPay >= fifty) && (moneyCount.getTen() + tenPay >= ten)) {
+                fiftyPay -= fifty;
+                while (fifty > 0) {
+                    if (fifty >= 10) {
+                        fifty -= 10;
+                        refund50Coin10();
+                    } else if (fifty >= 5) {
+                        fifty -= 5;
+                        refund50Coin5();
+                    } else if (fifty >= 2) {
+                        fifty -= 2;
+                        refund50Coin2();
+                    } else {
+                        fifty -= 1;
+                        refund50Coin1();
+                    }
+                }
+
+                tenPay -= ten;
+                while (ten > 0) {
+                    if (ten >= 10) {
+                        ten -= 10;
+                        refund10Coin10();
+                    } else if (ten >= 5) {
+                        ten -= 5;
+                        refund10Coin5();
+                    } else if (ten >= 2) {
+                        ten -= 2;
+                        refund10Coin2();
+                    } else {
+                        ten -= 1;
+                        refund10Coin1();
+                    }
+                }
+            } else {
+                ret = false;
+            }
+            if (fivePay != 0 || tenPay != 0 || fiftyPay != 0 || hundredPay != 0) {
+                Thread t = new Thread(() -> {
+                    ApacheServerRequest.moneyCountUpdate(
+                            moneyCount.getFive() + fivePay, moneyCount.getTen() + tenPay, moneyCount.getFifty() + fiftyPay, moneyCount.getHundred() + hundredPay);
+                });
+                t.start();
+            }
+        }
+
+        return ret;
+    }
+
     public void stopCoinPay() {
         setCoinInputDisable();
         setPaperDisable();
@@ -237,14 +313,14 @@ public class MainViewModel extends ViewModel {
                     refund10Coin1();
                 }
             }
-            MoneyCount moneyCount = getMoneyCount();
-            if (moneyCount != null && (fivePay != 0 || tenPay != 0 || fiftyPay != 0 || hundredPay != 0)) {
-                Thread t = new Thread(() -> {
-                    ApacheServerRequest.moneyCountUpdate(
-                            moneyCount.getFive() + fivePay, moneyCount.getTen() + tenPay, moneyCount.getFifty() + fiftyPay, moneyCount.getHundred() + hundredPay);
-                });
-                t.start();
-            }
+        }
+        MoneyCount moneyCount = getMoneyCount();
+        if (moneyCount != null && (fivePay != 0 || tenPay != 0 || fiftyPay != 0 || hundredPay != 0)) {
+            Thread t = new Thread(() -> {
+                ApacheServerRequest.moneyCountUpdate(
+                        moneyCount.getFive() + fivePay, moneyCount.getTen() + tenPay, moneyCount.getFifty() + fiftyPay, moneyCount.getHundred() + hundredPay);
+            });
+            t.start();
         }
     }
 
@@ -267,7 +343,7 @@ public class MainViewModel extends ViewModel {
 
     private void readCoinInput() {
         new Thread(() -> {
-            while (true) {
+            while (!cleared) {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -283,14 +359,18 @@ public class MainViewModel extends ViewModel {
                             coinInputDevice.read(data, 6);
                             if (Arrays.equals(data, getCoin5)) {
                                 fivePay += 1;
-                                getTotalPay().postValue(getTotalPay().getValue() + 5);
+                                totalPay.postValue(totalPay.getValue() + 5);
+                                System.out.println("Accept5");
                             } else if (Arrays.equals(data, getCoin10)) {
                                 tenPay += 1;
-                                getTotalPay().postValue(getTotalPay().getValue() + 10);
+                                totalPay.postValue(totalPay.getValue() + 10);
+                                System.out.println("Accept10");
                             } else if (Arrays.equals(data, getCoin50)) {
                                 fiftyPay += 1;
-                                getTotalPay().postValue(getTotalPay().getValue() + 50);
+                                totalPay.postValue(totalPay.getValue() + 50);
+                                System.out.println("Accept50");
                             }
+                            System.out.println("Total" + totalPay.getValue());
                         }
                     } else {
                         byte[] data = new byte[5];
@@ -333,7 +413,7 @@ public class MainViewModel extends ViewModel {
 
     private void readPaperInput() {
         new Thread(() -> {
-            while (true) {
+            while (!cleared) {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -352,6 +432,9 @@ public class MainViewModel extends ViewModel {
                         paperInputDevice.read(data, 1);
                         if (Arrays.equals(data, new byte[]{(byte) 0x8F})) {
                             paperInputDevice.write(paperPowerReply);
+                            if (!startCoinPay) {
+                                setPaperDisable();
+                            }
                         }
                     } else if (Arrays.equals(data, new byte[]{(byte) 0x81})) {
                         len = 0;
@@ -360,9 +443,11 @@ public class MainViewModel extends ViewModel {
                         }
                         paperInputDevice.read(data, 1);
                         if (Arrays.equals(data, new byte[]{(byte) 0x40}) && paperReady) {
+                            System.out.println("Accpect100");
                             hundredPay += 1;
                             paperInputDevice.write(getPaperConfirm);
-                            getTotalPay().postValue(getTotalPay().getValue() + 100);
+                            totalPay.postValue(totalPay.getValue() + 100);
+                            System.out.println("Total" + String.valueOf(totalPay.getValue() + 100));
                         } else {
                             paperInputDevice.write(getPaperReject);
                         }
@@ -402,7 +487,7 @@ public class MainViewModel extends ViewModel {
 
     private void read50Input() {
         new Thread(() -> {
-            while (true) {
+            while (!cleared) {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -560,9 +645,9 @@ public class MainViewModel extends ViewModel {
     }
 
     public String getPayment() {
-        String ret = "E";
+        String ret = "C";
         if (payWay.getValue() == 1) {
-            ret = "C";
+            ret = "E";
         }
         return ret;
     }
@@ -572,7 +657,7 @@ public class MainViewModel extends ViewModel {
      */
     private void checkRefund() {
         Thread t = new Thread(() -> {
-            while (true) {
+            while (!cleared) {
                 try {
                     Thread.sleep(5000);
                 } catch (Exception e) {
@@ -584,7 +669,7 @@ public class MainViewModel extends ViewModel {
                     if (moneyCount != null && refund != null && refund.getRefund() == 1) {
                         int ten = refund.getTen();
                         int fifty = refund.getFifty();
-                        ApacheServerRequest.moneyCountUpdate(moneyCount.getFive(), moneyCount.getTen() - ten, moneyCount.getFifty() - fifty, moneyCount.getHundred());
+                        ApacheServerRequest.moneyCountUpdate(0, moneyCount.getTen() - ten, moneyCount.getFifty() - fifty, moneyCount.getHundred());
                         while (ten > 0) {
                             if (ten >= 10) {
                                 ten -= 10;
@@ -637,7 +722,7 @@ public class MainViewModel extends ViewModel {
      */
     private void checkSupply() {
         Thread t = new Thread(() -> {
-            while (true) {
+            while (!cleared) {
                 try {
                     Thread.sleep(5000);
                 } catch (Exception e) {
@@ -735,7 +820,7 @@ public class MainViewModel extends ViewModel {
      */
     private void checkPrintCoupon() {
         Thread t = new Thread(() -> {
-            while (true) {
+            while (!cleared) {
                 try {
                     Thread.sleep(5000);
                 } catch (Exception e) {
@@ -820,5 +905,41 @@ public class MainViewModel extends ViewModel {
 
     public String getLotName() {
         return lotName + "停車場";
+    }
+
+    private BasicFee getBasicFee() {
+        Var<BasicFee> basicFee = new Var<>(null);
+        Thread t = new Thread(() -> {
+            String json = ApacheServerRequest.getBasicFee();
+            if (json != null) {
+                try {
+                    JSONArray array = new JSONArray(json);
+                    if (array.length() > 0) {
+                        JSONObject obj = array.getJSONObject(0);
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        BasicFee fee = gson.fromJson(obj.toString(), BasicFee.class);
+                        basicFee.set(fee);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return basicFee.get();
+    }
+
+    private boolean cleared = false;
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        cleared = true;
+        System.out.println("cleared");
     }
 }

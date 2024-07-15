@@ -8,9 +8,11 @@ import android.os.Build;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.android.machine.R;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -502,7 +504,7 @@ public class EcpayFunction {
                 data.setPrint(carrierID.isEmpty() ? "1" : "0");
                 data.setDonation("0");
                 data.setLoveCode("");
-                data.setCarrierType("");
+                data.setCarrierType(carrierID.isEmpty() ? "" : "3");
                 data.setCarrierNum(carrierID);
                 data.setTaxType("1");
                 data.setSpecialTaxType("0");
@@ -542,7 +544,7 @@ public class EcpayFunction {
                         if (!ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
                             JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
                             if (returnData.getInt("RtnCode") == 1) {
-                                invoiceNo.set(returnData.getString("InvoiceNo"));
+                                invoiceNo.set(no);
                                 invoiceDate.set(currentDate.split(" ")[0]);
                                 if (carrierID.isEmpty()) {
                                     invoicePrint(test, activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
@@ -590,7 +592,6 @@ public class EcpayFunction {
                 String dataString = gson.toJson(data);
                 json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
                 String jsonText = gson.toJson(json);
-                System.out.println(jsonText);
 
                 try {
                     String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/InvoicePrint", jsonText, "UTF-8");
@@ -660,7 +661,7 @@ public class EcpayFunction {
 
     public static void invoiceMachinePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt, Bitmap invoicePic) {
         int targetWidth = 456;
-        int targetHeight = 720;
+        int targetHeight = invoicePic.getHeight() * 456 / invoicePic.getWidth();
 
         // 缩放 Bitmap
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(invoicePic, targetWidth, targetHeight, false);
@@ -812,7 +813,6 @@ public class EcpayFunction {
             String dataString = gson.toJson(data);
             json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
             String jsonText = gson.toJson(json);
-            System.out.println(jsonText);
 
             try {
                 String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/GetCompanyNameByTaxID", jsonText, "UTF-8");
@@ -852,7 +852,6 @@ public class EcpayFunction {
             String dataString = gson.toJson(data);
             json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
             String jsonText = gson.toJson(json);
-            System.out.println(jsonText);
 
             try {
                 String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/CheckBarcode", jsonText, "UTF-8");

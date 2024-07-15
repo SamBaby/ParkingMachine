@@ -31,6 +31,7 @@
 
 
         <TextView
+            android:id="@+id/text_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -51,4 +52,10 @@
         android:id="@+id/footer"
         layout="@layout/footer" />
 
+    <EditText
+        android:id="@+id/edit_none"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:text=""
+        tools:ignore="MissingConstraints"></EditText>
 </androidx.constraintlayout.widget.ConstraintLayout>

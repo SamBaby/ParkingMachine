@@ -7,10 +7,13 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.android.machine.R;
@@ -31,6 +34,8 @@ public class EndingFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private TextView textTime;
+
     public EndingFragment() {
         // Required empty public constructor
     }
@@ -71,7 +76,32 @@ public class EndingFragment extends Fragment {
             TextView title = root.findViewById(R.id.text_title);
             MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             title.setText(viewModel.getLotName());
+            textTime = root.findViewById(R.id.text_time);
+            viewModel.getExitCountTime().observe(getViewLifecycleOwner(), this::setTime);
         }
+        setNoneEditText(root);
         return root;
+    }
+
+    private void setNoneEditText(View root) {
+        EditText txt = root.findViewById(R.id.edit_none);
+        txt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                s.clear();
+            }
+        });
+    }
+
+    private void setTime(Integer time) {
+        textTime.setText(getString(R.string.exit_desc1) + time + getString(R.string.exit_desc2));
     }
 }

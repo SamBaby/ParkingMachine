@@ -117,9 +117,10 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
     private void checkDeviceThread() {
         Thread t = new Thread(() -> {
-            while (true) {
+            while (!detroyed) {
                 try {
                     Thread.sleep(5000);
                     handleFT4232H(coinInputManager);
@@ -227,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         if (hotplug.equals(action)) {
             try {
                 System.out.println(hotplug);
-                handleFT4232H(coinInputManager);
+//                handleFT4232H(coinInputManager);
                 handlePrintMachine();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -235,9 +236,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private boolean detroyed = false;
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        detroyed = true;
         System.out.println("main activity destroy");
         if (coinInputDevice != null) {
             coinInputDevice.close();

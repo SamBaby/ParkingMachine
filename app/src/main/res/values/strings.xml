@@ -16,6 +16,8 @@
 
     <string name="can_exit">可離場</string>
     <string name="exit_desc">請於15分鐘內離場</string>
+    <string name="exit_desc1">請於</string>
+    <string name="exit_desc2">分鐘內離場</string>
     <string name="next_time">歡迎再次光臨</string>
     <string name="input_company_id">請輸入 統一編號,輸入後請按 列印發票</string>
     <string name="no_company_id">無需統一編號,請按 列印發票 或 選擇載具</string>
@@ -56,4 +58,7 @@
     <string name = "coin_broken">投幣機故障，請聯絡相關人員</string>
     <string name = "print_broken">發票機故障，請聯絡相關人員</string>
     <string name = "car_number_over_two">請輸入至少兩位數號碼</string>
+    <string name = "coin_not_enough">硬幣不足，請聯絡相關人員</string>
+
+    <string name="internet_error">網路異常無法列印發票，如需發票請聯絡相關人員</string>
 </resources>

@@ -10,10 +10,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -100,7 +103,10 @@ public class CoinPayFragment extends Fragment {
             Button cancelBtn = root.findViewById(R.id.cancel_button);
             cancelBtn.setOnClickListener(v -> {
                 viewModel.setSelectedCars(null);
-                viewModel.stopCoinPay();
+                boolean success = viewModel.cancelCoinPay();
+                if(!success){
+                    Toast.makeText(getActivity(), getString(R.string.coin_not_enough), Toast.LENGTH_SHORT).show();
+                }
                 ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                 viewPager.setCurrentItem(0, true);
             });
@@ -109,8 +115,26 @@ public class CoinPayFragment extends Fragment {
             title.setText(viewModel.getLotName());
             progressBar = root.findViewById(R.id.progressBar);
         }
-
+        setNoneEditText(root);
         return root;
+    }
+
+    private void setNoneEditText(View root) {
+        EditText txt = root.findViewById(R.id.edit_none);
+        txt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                s.clear();
+            }
+        });
     }
 
     private void setCarView(CarInside car) {

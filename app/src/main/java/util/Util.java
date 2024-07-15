@@ -19,6 +19,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
@@ -438,4 +439,25 @@ public class Util {
             t.start();
         }
     }
+
+    public static String getServerTime() {
+        Var<String> serverTime = new Var<>();
+        Thread t = new Thread(() -> {
+            String time = ApacheServerRequest.getServerTime();
+            serverTime.set(time);
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if(serverTime.get() ==null || serverTime.get().isEmpty()){
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.TAIWAN);
+            Date nowDate = new Date();
+            serverTime.set(format.format(nowDate));
+        }
+        return serverTime.get();
+    }
+
 }

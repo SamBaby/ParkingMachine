@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,7 +51,9 @@ public class CarrierFragment extends Fragment {
     MainViewModel viewModel;
     private Handler handler = new Handler();
     private ProgressBar progressBar;
-private EditText editText;
+    private EditText editText;
+    private boolean isResettingKeyboard = false;
+
     public CarrierFragment() {
         // Required empty public constructor
     }
@@ -83,8 +86,7 @@ private EditText editText;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_carrier, container, false);
         editText = root.findViewById(R.id.edittext_carrier);
@@ -95,7 +97,13 @@ private EditText editText;
             TextView title = root.findViewById(R.id.text_title);
             title.setText(viewModel.getLotName());
             Button previousBtn = root.findViewById(R.id.button_previous);
-            previousBtn.setOnClickListener(v -> viewPager.setCurrentItem(4));
+            previousBtn.setOnClickListener(v -> {
+                viewPager.setCurrentItem(4);
+            });
+            Button btnClear = root.findViewById(R.id.button_clear);
+            btnClear.setOnClickListener(v -> {
+                editText.setText("");
+            });
             editText.requestFocus();
             editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
@@ -109,51 +117,58 @@ private EditText editText;
             editText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
                 }
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-
                 }
 
                 @Override
                 public void afterTextChanged(Editable s) {
-                    if (!s.toString().isEmpty()) {
-                        String id = s.toString();
-                        if (id.lastIndexOf("/") >= 0) {
-                            id = id.substring(id.lastIndexOf("/"));
-                            editText.setText(id);
+                    if (issueing) {
+                        s.clear();
+                        return;
+                    }
+                    if (!s.toString().startsWith("／") && !s.toString().startsWith("/")) {
+                        s.clear();
+                        return;
+                    }
+                    if (!s.toString().isEmpty() && s.toString().length() == 8) {
+                        String id = s.toString().replaceAll("／", "/");
+                        if (id.lastIndexOf("/") >= 0 && id.length() == 8) {
+                            new BackgroundTask(id).execute();
+//                            Boolean check = checkCarrierId(id);
+//                            if (check) {
+//                                ECPayData data = Util.getECPayData();
+//                                Var<String> number = new Var<>("");
+//                                String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(), data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+//                                CarInside car = viewModel.getSelectedCars().getValue();
+//                                if (invoice != null && !invoice.isEmpty()) {
+//                                    number.set(invoice);
+//                                } else {
+//                                    getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.internet_error), Toast.LENGTH_SHORT).show());
+//                                }
+//                                new Thread(() -> {
+//                                    String payTime = Util.getServerTime();
+//                                    ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(), viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
+//                                    ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime, viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
+//                                }).start();
+//                                editText.setText("");
+//                                viewModel.setSelectedCars(null);
+//                                viewModel.setExitCountTime();
+//                                viewPager.setCurrentItem(6);
+//                                // Schedule to change the page to index 0 after 10 seconds
+//                                handler.postDelayed(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        viewPager.setCurrentItem(0);
+//                                    }
+//                                }, 5000); // 10000 milliseconds = 10 seconds
+//                            } else {
+//                                Toast.makeText(getActivity(), getString(R.string.carrier_id_not_found) + ":" + id, Toast.LENGTH_SHORT).show();
+//                            }
                         }
-                        Boolean check = checkCarrierId(id);
-                        if (check) {
-                            ECPayData data = Util.getECPayData();
-                            Var<String> number = new Var<>("");
-                            String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                    data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
-                            CarInside car = viewModel.getSelectedCars().getValue();
-                            if (invoice != null) {
-                                number.set(invoice);
-                            }
-                            new Thread(() -> {
-                                ApacheServerRequest.setCarInsidePayWithServerTime(car.getCar_number(), viewModel.getTotalMoney().getValue(),
-                                        viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
-                                ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
-                                        viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
-                            }).start();
-                            editText.setText("");
-                            viewModel.setSelectedCars(null);
-                            viewPager.setCurrentItem(6);
-                            // Schedule to change the page to index 0 after 10 seconds
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    viewPager.setCurrentItem(0);
-                                }
-                            }, 5000); // 10000 milliseconds = 10 seconds
-                        } else {
-                            Toast.makeText(getActivity(), getString(R.string.carrier_id_not_found) + ":" + id, Toast.LENGTH_SHORT).show();
-                        }
+                        s.clear();
                     }
                 }
             });
@@ -163,12 +178,15 @@ private EditText editText;
 
     private Boolean checkCarrierId(String id) {
         ECPayData data = Util.getECPayData();
-        return EcpayFunction.barcodeCheck(data.getTest() == 1, data.getMachineID(), data.getHashKey(), data.getHashIV(), id);
+        return EcpayFunction.barcodeCheck(data.getTest() == 1, data.getMerchantID(), data.getHashKey(), data.getHashIV(), id);
     }
+
+    private boolean issueing = false;
 
     private class BackgroundTask extends AsyncTask<Void, Void, Void> {
         private String id;
-        public BackgroundTask(String id){
+
+        public BackgroundTask(String id) {
             this.id = id;
         }
 
@@ -184,25 +202,31 @@ private EditText editText;
             // Perform the background task here
             // For example, a long-running operation like downloading data or heavy computation
             // Simulating a long-running task with Thread.sleep()
-            ECPayData data = Util.getECPayData();
-            Var<String> number = new Var<>("");
-            String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                    data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
-            CarInside car = viewModel.getSelectedCars().getValue();
-            if (invoice != null) {
-                number.set(invoice);
+            issueing = true;
+            Boolean check = checkCarrierId(id);
+            if (check) {
+                ECPayData data = Util.getECPayData();
+                Var<String> number = new Var<>("");
+                String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(), data.getMerchantID(), data.getMachineID(), null, id, viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                CarInside car = viewModel.getSelectedCars().getValue();
+                if (invoice != null && !invoice.isEmpty()) {
+                    number.set(invoice);
+                } else {
+                    getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.internet_error), Toast.LENGTH_SHORT).show());
+                }
+                new Thread(() -> {
+                    String payTime = Util.getServerTime();
+                    ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(), viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
+                    ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime, viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
+                }).start();
+                viewModel.setSelectedCars(null);
+                handler.postDelayed(() -> viewPager.setCurrentItem(6), 0);
+                // Schedule to change the page to index 0 after 10 seconds
+                handler.postDelayed(() -> viewPager.setCurrentItem(0), 5000); // 10000 milliseconds = 10 seconds
+            } else {
+                Toast.makeText(getActivity(), getString(R.string.carrier_id_not_found) + ":" + id, Toast.LENGTH_SHORT).show();
             }
-            new Thread(() -> {
-                ApacheServerRequest.setCarInsidePayWithServerTime(car.getCar_number(), viewModel.getTotalMoney().getValue(),
-                        viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
-                ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), viewModel.getPayTime().getValue(),
-                        viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
-            }).start();
-            editText.setText("");
-            viewModel.setSelectedCars(null);
-            handler.postDelayed(() -> viewPager.setCurrentItem(6), 0);
-            // Schedule to change the page to index 0 after 10 seconds
-            handler.postDelayed(() -> viewPager.setCurrentItem(0), 5000); // 10000 milliseconds = 10 seconds
+            issueing = false;
             return null;
         }
 

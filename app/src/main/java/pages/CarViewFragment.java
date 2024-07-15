@@ -5,10 +5,13 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -124,7 +127,26 @@ public class CarViewFragment extends Fragment {
             TextView title = root.findViewById(R.id.text_title);
             title.setText(viewModel.getLotName());
         }
+        setNoneEditText(root);
         return root;
+    }
+
+    private void setNoneEditText(View root) {
+        EditText txt = root.findViewById(R.id.edit_none);
+        txt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                s.clear();
+            }
+        });
     }
 
     private void setCarView(Vector<CarInside> cars) {
@@ -216,6 +238,7 @@ public class CarViewFragment extends Fragment {
                         viewPager.setCurrentItem(2, true);
                     } else {
                         viewModel.setSelectedCars(null);
+                        viewModel.setExitCountTime();
                         viewPager.setCurrentItem(6);
                         // Schedule to change the page to index 0 after 10 seconds
                         handler.postDelayed(new Runnable() {
@@ -265,6 +288,7 @@ public class CarViewFragment extends Fragment {
                         viewPager.setCurrentItem(2, true);
                     } else {
                         viewModel.setSelectedCars(null);
+                        viewModel.setExitCountTime();
                         viewPager.setCurrentItem(6);
                         // Schedule to change the page to index 0 after 10 seconds
                         handler.postDelayed(new Runnable() {
@@ -313,6 +337,7 @@ public class CarViewFragment extends Fragment {
                         viewPager.setCurrentItem(2, true);
                     } else {
                         viewModel.setSelectedCars(null);
+                        viewModel.setExitCountTime();
                         viewPager.setCurrentItem(6);
                         // Schedule to change the page to index 0 after 10 seconds
                         handler.postDelayed(new Runnable() {
@@ -361,6 +386,7 @@ public class CarViewFragment extends Fragment {
                         viewPager.setCurrentItem(2, true);
                     } else {
                         viewModel.setSelectedCars(null);
+                        viewModel.setExitCountTime();
                         viewPager.setCurrentItem(6);
                         // Schedule to change the page to index 0 after 10 seconds
                         handler.postDelayed(new Runnable() {
@@ -626,7 +652,8 @@ public class CarViewFragment extends Fragment {
                         return true;
                     } else {
                         new Thread(() -> {
-                            ApacheServerRequest.setCarInsidePayWithServerTime(car.getCar_number(), viewModel.getTotalMoney().getValue(),
+                            String payTime = Util.getServerTime();
+                            ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(),
                                     viewModel.getDiscountMoney().getValue(), "", "D");
                         }).start();
                     }

@@ -284,4 +284,9 @@ public class ApacheServerRequest {
         return HTTPGetRequest.get(url, String.format("func=regular_pass_single_search&car_number=%s",
                 carNumber));
     }
+
+    public static String getServerTime(){
+        return HTTPGetRequest.get(url, "func=get_server_time");
+    }
+
 }
