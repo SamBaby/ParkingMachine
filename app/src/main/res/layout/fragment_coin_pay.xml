@@ -125,10 +125,12 @@
             android:background="@drawable/light_gery_background"
             android:orientation="vertical"
             android:padding="20dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -137,6 +139,7 @@
                     android:text="@string/total_pay"
                     android:textColor="@color/black"
                     android:textSize="40sp" />
+
                 <TextView
                     android:id="@+id/text_total"
                     android:layout_width="match_parent"
@@ -147,10 +150,12 @@
                     android:textColor="@color/black"
                     android:textSize="40sp" />
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -159,6 +164,7 @@
                     android:text="@string/should_pay"
                     android:textColor="@color/black"
                     android:textSize="40sp" />
+
                 <TextView
                     android:id="@+id/text_should_pay"
                     android:layout_width="match_parent"
@@ -169,10 +175,12 @@
                     android:textColor="@color/black"
                     android:textSize="40sp" />
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -181,6 +189,7 @@
                     android:text="@string/already_pay"
                     android:textColor="@color/black"
                     android:textSize="40sp" />
+
                 <TextView
                     android:id="@+id/text_already_pay"
                     android:layout_width="match_parent"
@@ -199,16 +208,18 @@
     <include
         android:id="@+id/footer"
         layout="@layout/footer" />
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true"
-        android:visibility="gone"/>
+        android:visibility="gone" />
+
     <EditText
         android:id="@+id/edit_none"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:text=""
         tools:ignore="MissingConstraints"></EditText>
 </androidx.constraintlayout.widget.ConstraintLayout>

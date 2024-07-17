@@ -485,84 +485,99 @@ public class EcpayFunction {
         Thread t = new Thread(() -> {
             Var<String> invoiceNo = new Var<>();
             Var<String> invoiceDate = new Var<>();
-            MachineNumberInfo info = EcpayFunction.getMachineInvoiceNumberInfo(merchantID, machineID, algorithm, key, IV);
-            if (info != null) {
-                String no = info.getInvoiceNumber();
-                String random = info.getRandomNumber();
-                Date currentTime = Calendar.getInstance().getTime();
-                long unixTime = currentTime.getTime();
-                InvoiceDataOffline data = new InvoiceDataOffline();
-                data.setMerchantID(merchantID);
-                data.setRelateNumber("ParkJohn" + unixTime);
-                data.setCustomerIdentifier(companyID);
-                data.setCustomerID("");
-                data.setCustomerName("");
-                data.setCustomerAddr("");
-                data.setCustomerPhone("");
-                data.setCustomerEmail("");
-                data.setClearanceMark("");
-                data.setPrint(carrierID.isEmpty() ? "1" : "0");
-                data.setDonation("0");
-                data.setLoveCode("");
-                data.setCarrierType(carrierID.isEmpty() ? "" : "3");
-                data.setCarrierNum(carrierID);
-                data.setTaxType("1");
-                data.setSpecialTaxType("0");
-                data.setSalesAmount(amount);
-                data.setInvType("07");
-                data.setVat("1");
-                data.setInvoiceRemark("");
-                data.setItems(new EnvoiceItem[]{new EnvoiceItem()});
-                data.getItems()[0] = new EnvoiceItem();
-                data.getItems()[0].setItemSeq(1);
-                data.getItems()[0].setItemName("停車費");
-                data.getItems()[0].setItemCount(1);
-                data.getItems()[0].setItemWord("次");
-                data.getItems()[0].setItemPrice(amount);
-                data.getItems()[0].setItemTaxType("1");
-                data.getItems()[0].setItemAmount(amount);
-                data.getItems()[0].setItemRemark("one hour");
-                data.setMachineID(machineID);
-                data.setInvoiceNo(no);
-                data.setRandomNumber(random);
-                String currentDate = EcpayFunction.getCurrentDateTime();
-                data.setInvoiceDate(currentDate);
-                EnvoiceJson json = new EnvoiceJson();
-                RqHeader header = new RqHeader();
-                header.setTimestamp(unixTime);
+            int index = 0;
+            while (index < 3 && (billNumber.get() == null || billNumber.get().isEmpty())) {
+                MachineNumberInfo info = EcpayFunction.getMachineInvoiceNumberInfo(merchantID, machineID, algorithm, key, IV);
+                if (info != null) {
+                    String no = info.getInvoiceNumber();
+                    String random = info.getRandomNumber();
+                    Date currentTime = Calendar.getInstance().getTime();
+                    long unixTime = currentTime.getTime();
+                    InvoiceDataOffline data = new InvoiceDataOffline();
+                    data.setMerchantID(merchantID);
+                    data.setRelateNumber("ParkJohn" + unixTime);
+                    data.setCustomerIdentifier(companyID);
+                    data.setCustomerID("");
+                    data.setCustomerName("");
+                    data.setCustomerAddr("");
+                    data.setCustomerPhone("");
+                    data.setCustomerEmail("");
+                    data.setClearanceMark("");
+                    data.setPrint(carrierID.isEmpty() ? "1" : "0");
+                    data.setDonation("0");
+                    data.setLoveCode("");
+                    data.setCarrierType(carrierID.isEmpty() ? "" : "3");
+                    data.setCarrierNum(carrierID);
+                    data.setTaxType("1");
+                    data.setSpecialTaxType("0");
+                    data.setSalesAmount(amount);
+                    data.setInvType("07");
+                    data.setVat("1");
+                    data.setInvoiceRemark("");
+                    data.setItems(new EnvoiceItem[]{new EnvoiceItem()});
+                    data.getItems()[0] = new EnvoiceItem();
+                    data.getItems()[0].setItemSeq(1);
+                    data.getItems()[0].setItemName("停車費");
+                    data.getItems()[0].setItemCount(1);
+                    data.getItems()[0].setItemWord("次");
+                    data.getItems()[0].setItemPrice(amount);
+                    data.getItems()[0].setItemTaxType("1");
+                    data.getItems()[0].setItemAmount(amount);
+                    data.getItems()[0].setItemRemark("one hour");
+                    data.setMachineID(machineID);
+                    data.setInvoiceNo(no);
+                    data.setRandomNumber(random);
+                    String currentDate = EcpayFunction.getCurrentDateTime();
+                    data.setInvoiceDate(currentDate);
+                    EnvoiceJson json = new EnvoiceJson();
+                    RqHeader header = new RqHeader();
+                    header.setTimestamp(unixTime);
 
-                json.MerchantID = merchantID;
-                Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();
-                json.RqHeader = header;
-                String dataString = gson.toJson(data);
-                json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
-                String jsonText = gson.toJson(json);
-                try {
-                    String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/OfflineIssue", jsonText, "UTF-8");
-                    if (res != null) {
-                        JSONObject ret = new JSONObject(res);
-                        if (!ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
-                            JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
-                            if (returnData.getInt("RtnCode") == 1) {
-                                invoiceNo.set(no);
-                                invoiceDate.set(currentDate.split(" ")[0]);
-                                if (carrierID.isEmpty()) {
-                                    invoicePrint(test, activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
+                    json.MerchantID = merchantID;
+                    Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();
+                    json.RqHeader = header;
+                    String dataString = gson.toJson(data);
+                    json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
+                    String jsonText = gson.toJson(json);
+                    try {
+                        String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/OfflineIssue", jsonText, "UTF-8");
+                        if (res != null) {
+                            JSONObject ret = new JSONObject(res);
+                            if (!ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
+                                JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
+                                if (returnData.getInt("RtnCode") == 1) {
+                                    invoiceNo.set(no);
+                                    invoiceDate.set(currentDate.split(" ")[0]);
+                                    if (carrierID.isEmpty()) {
+                                        boolean printResult = invoicePrint(test, activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
+                                        if (!printResult) {
+                                            billNumber.set(null);
+                                            break;
+                                        } else {
+                                            billNumber.set(invoiceNo.get());
+                                        }
+                                    } else {
+                                        billNumber.set(invoiceNo.get());
+                                    }
+                                } else {
+                                    //失敗
                                 }
-                                billNumber.set(invoiceNo.get());
-                            } else {
-                                //失敗
                             }
+                        } else {
+                            //失敗
                         }
-
-                    } else {
+                    } catch (Exception ee) {
+                        ee.printStackTrace();
                         //失敗
                     }
-                } catch (Exception ee) {
-                    ee.printStackTrace();
-                    //失敗
-                }
 
+                }
+                index++;
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
         try {
@@ -574,7 +589,8 @@ public class EcpayFunction {
         return billNumber.get();
     }
 
-    public static void invoicePrint(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date) {
+    public static boolean invoicePrint(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date) {
+        Var<Boolean> result = new Var<>(false);
         if (invoiceNumber != null && date != null && !invoiceNumber.isEmpty() && !date.isEmpty()) {
             Thread t = new Thread(() -> {
                 long unixTime = System.currentTimeMillis() / 1000L;
@@ -594,54 +610,60 @@ public class EcpayFunction {
                 String jsonText = gson.toJson(json);
 
                 try {
-                    String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/InvoicePrint", jsonText, "UTF-8");
-                    if (res != null) {
-                        JSONObject ret = new JSONObject(res);
-                        JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
-                        String url = returnData.getString("InvoiceHtml");
-                        if (!url.isEmpty()) {
-                            activity.runOnUiThread(() -> {
-                                WebView view = new WebView(activity);
+                    int index = 0;
+                    while (index < 5 && !result.get()) {
+                        String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/InvoicePrint", jsonText, "UTF-8");
+                        if (res != null) {
+                            JSONObject ret = new JSONObject(res);
+                            JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
+                            String url = returnData.getString("InvoiceHtml");
+                            if (!url.isEmpty()) {
+                                result.set(true);
+                                activity.runOnUiThread(() -> {
+                                    WebView view = new WebView(activity);
 
-                                view.setPictureListener(new WebView.PictureListener() {
-                                    boolean print = true;
+                                    view.setPictureListener(new WebView.PictureListener() {
+                                        boolean print = true;
 
-                                    @Override
-                                    public void onNewPicture(WebView view, @Nullable Picture picture) {
-                                        if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
-                                            view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                                                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                                            view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-                                            view.setDrawingCacheEnabled(true);
-                                            view.buildDrawingCache();
-                                            Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-                                            Canvas canvas = new Canvas(bitmap);
-                                            view.draw(canvas);
-                                            invoiceMachinePrint(activity, connector, cxt, bitmap);
-                                            view.setVisibility(View.GONE);
-                                            print = false;
-                                            view.destroy();
-                                        } else if (print) {
-                                            view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                                                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                                            view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                        @Override
+                                        public void onNewPicture(WebView view, @Nullable Picture picture) {
+                                            if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
+                                                view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                                                view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                view.setDrawingCacheEnabled(true);
+                                                view.buildDrawingCache();
+                                                Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+                                                Canvas canvas = new Canvas(bitmap);
+                                                view.draw(canvas);
+                                                invoiceMachinePrint(activity, connector, cxt, bitmap);
+                                                view.setVisibility(View.GONE);
+                                                print = false;
+                                                view.destroy();
+                                            } else if (print) {
+                                                view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                                                view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                            }
+
                                         }
+                                    });
 
-                                    }
+                                    // 启用 JavaScript
+                                    WebSettings webSettings = view.getSettings();
+                                    webSettings.setJavaScriptEnabled(true);
+                                    // 加载 HTML 内容
+                                    view.loadUrl(url);
                                 });
+                            } else {
+                                //發票網址取得失敗
+                            }
 
-                                // 启用 JavaScript
-                                WebSettings webSettings = view.getSettings();
-                                webSettings.setJavaScriptEnabled(true);
-                                // 加载 HTML 内容
-                                view.loadUrl(url);
-                            });
                         } else {
                             //發票網址取得失敗
                         }
-
-                    } else {
-                        //發票網址取得失敗
+                        index++;
+                        Thread.sleep(2000);
                     }
                 } catch (Exception ee) {
                     ee.printStackTrace();
@@ -657,6 +679,8 @@ public class EcpayFunction {
         } else {
             //發票網址取得失敗
         }
+
+        return result.get();
     }
 
     public static void invoiceMachinePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt, Bitmap invoicePic) {

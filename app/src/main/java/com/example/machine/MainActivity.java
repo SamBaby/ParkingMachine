@@ -147,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
             int devCount = 0;
             manager.setVIDPID(1027, 24593);
             devCount = manager.createDeviceInfoList(this);
+
             if (devCount >= 4) {
                 try {
                     System.out.println("connecting FTDI");

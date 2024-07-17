@@ -360,17 +360,13 @@ public class MainViewModel extends ViewModel {
                             if (Arrays.equals(data, getCoin5)) {
                                 fivePay += 1;
                                 totalPay.postValue(totalPay.getValue() + 5);
-                                System.out.println("Accept5");
                             } else if (Arrays.equals(data, getCoin10)) {
                                 tenPay += 1;
                                 totalPay.postValue(totalPay.getValue() + 10);
-                                System.out.println("Accept10");
                             } else if (Arrays.equals(data, getCoin50)) {
                                 fiftyPay += 1;
                                 totalPay.postValue(totalPay.getValue() + 50);
-                                System.out.println("Accept50");
                             }
-                            System.out.println("Total" + totalPay.getValue());
                         }
                     } else {
                         byte[] data = new byte[5];
@@ -443,11 +439,9 @@ public class MainViewModel extends ViewModel {
                         }
                         paperInputDevice.read(data, 1);
                         if (Arrays.equals(data, new byte[]{(byte) 0x40}) && paperReady) {
-                            System.out.println("Accpect100");
                             hundredPay += 1;
                             paperInputDevice.write(getPaperConfirm);
                             totalPay.postValue(totalPay.getValue() + 100);
-                            System.out.println("Total" + String.valueOf(totalPay.getValue() + 100));
                         } else {
                             paperInputDevice.write(getPaperReject);
                         }

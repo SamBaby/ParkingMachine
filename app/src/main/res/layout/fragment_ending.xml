@@ -54,8 +54,8 @@
 
     <EditText
         android:id="@+id/edit_none"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:text=""
         tools:ignore="MissingConstraints"></EditText>
 </androidx.constraintlayout.widget.ConstraintLayout>

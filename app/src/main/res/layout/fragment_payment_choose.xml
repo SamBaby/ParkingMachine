@@ -129,41 +129,42 @@
                 android:id="@+id/button_cash"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:background="@drawable/next_page_button"
                 android:text="@string/cash"
                 android:textColor="@color/white"
-                android:textSize="30sp"
-                android:layout_gravity="center"/>
-<!--            <androidx.appcompat.widget.AppCompatButton-->
-<!--                android:id="@+id/button_ezpay"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:background="@drawable/next_page_button"-->
-<!--                android:text="@string/card"-->
-<!--                android:textColor="@color/white"-->
-<!--                android:textSize="30sp"-->
-<!--                android:layout_gravity="center"-->
-<!--                android:layout_marginTop="20dp"/>-->
-<!--            <androidx.appcompat.widget.AppCompatButton-->
-<!--                android:id="@+id/button_linepay"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:background="@drawable/next_page_button"-->
-<!--                android:text="@string/line_pay"-->
-<!--                android:textColor="@color/white"-->
-<!--                android:textSize="30sp"-->
-<!--                android:layout_gravity="center"-->
-<!--                android:layout_marginTop="20dp"/>-->
+                android:textSize="30sp" />
+            <!--            <androidx.appcompat.widget.AppCompatButton-->
+            <!--                android:id="@+id/button_ezpay"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:background="@drawable/next_page_button"-->
+            <!--                android:text="@string/card"-->
+            <!--                android:textColor="@color/white"-->
+            <!--                android:textSize="30sp"-->
+            <!--                android:layout_gravity="center"-->
+            <!--                android:layout_marginTop="20dp"/>-->
+            <!--            <androidx.appcompat.widget.AppCompatButton-->
+            <!--                android:id="@+id/button_linepay"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:background="@drawable/next_page_button"-->
+            <!--                android:text="@string/line_pay"-->
+            <!--                android:textColor="@color/white"-->
+            <!--                android:textSize="30sp"-->
+            <!--                android:layout_gravity="center"-->
+            <!--                android:layout_marginTop="20dp"/>-->
         </LinearLayout>
     </LinearLayout>
 
     <include
         android:id="@+id/footer"
         layout="@layout/footer" />
+
     <EditText
         android:id="@+id/edit_none"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:text=""
         tools:ignore="MissingConstraints"></EditText>
 </androidx.constraintlayout.widget.ConstraintLayout>

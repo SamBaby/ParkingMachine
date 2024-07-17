@@ -22,10 +22,11 @@ public class BootReceiver extends BroadcastReceiver {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
+                System.out.println("reboot done1");
                 Intent activityIntent = new Intent(context, MainActivity.class);
                 activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 context.startActivity(activityIntent);
+                System.out.println("reboot done2");
             });
         }
     }
