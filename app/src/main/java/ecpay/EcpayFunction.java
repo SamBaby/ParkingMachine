@@ -2,6 +2,7 @@ package ecpay;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Picture;
 import android.os.Build;
@@ -22,8 +23,10 @@ import org.json.JSONObject;
 import org.w3c.dom.Document;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -480,7 +483,7 @@ public class EcpayFunction {
         }
     }
 
-    public static String invoiceIssueOffline(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID, int amount, String key, String IV) {
+    public static String invoiceIssueOffline(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID, int amount, String key, String IV, String enterDate) {
         Var<String> billNumber = new Var<>();
         Thread t = new Thread(() -> {
             Var<String> invoiceNo = new Var<>();
@@ -549,7 +552,7 @@ public class EcpayFunction {
                                     invoiceNo.set(no);
                                     invoiceDate.set(currentDate.split(" ")[0]);
                                     if (carrierID.isEmpty()) {
-                                        boolean printResult = invoicePrint(test, activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get());
+                                        boolean printResult = invoicePrint(test, activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get(), enterDate, (companyID != null && !companyID.isEmpty()));
                                         if (!printResult) {
                                             billNumber.set(null);
                                             break;
@@ -589,7 +592,7 @@ public class EcpayFunction {
         return billNumber.get();
     }
 
-    public static boolean invoicePrint(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date) {
+    public static boolean invoicePrint(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date, String enterDate, boolean printDetail) {
         Var<Boolean> result = new Var<>(false);
         if (invoiceNumber != null && date != null && !invoiceNumber.isEmpty() && !date.isEmpty()) {
             Thread t = new Thread(() -> {
@@ -636,7 +639,7 @@ public class EcpayFunction {
                                                 Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
                                                 Canvas canvas = new Canvas(bitmap);
                                                 view.draw(canvas);
-                                                invoiceMachinePrint(activity, connector, cxt, bitmap);
+                                                invoiceMachinePrint(activity, connector, cxt, bitmap, enterDate, printDetail);
                                                 view.setVisibility(View.GONE);
                                                 print = false;
                                                 view.destroy();
@@ -683,17 +686,17 @@ public class EcpayFunction {
         return result.get();
     }
 
-    public static void invoiceMachinePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt, Bitmap invoicePic) {
-        int targetWidth = 456;
-        int targetHeight = invoicePic.getHeight() * 456 / invoicePic.getWidth();
-
-        // 缩放 Bitmap
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(invoicePic, targetWidth, targetHeight, false);
-        if (cxt != null) {
-            try {
-                activity.runOnUiThread(() -> {
+    public static void invoiceTitlePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt) {
+        String base64 = Util.getEnvoiceTitleBase64();
+        byte[] decodedBytes = android.util.Base64.decode(base64, 0);
+        Bitmap bmp = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+        if (bmp != null) {
+            int targetWidth = bmp.getWidth();
+            int targetHeight = bmp.getHeight();
+            activity.runOnUiThread(() -> {
+                try {
                     int s = 0, index = 0;
-                    byte[] sendData = printDraw(scaledBitmap);
+                    byte[] sendData = printDraw(bmp);
                     byte[] temp = new byte[8 + (targetWidth / 8)];
 
                     for (int i = 0; i < targetHeight; i++) {
@@ -715,15 +718,70 @@ public class EcpayFunction {
                         connector.WriteBytes(cxt, PrintCommand.position40, 0);
                         connector.WriteBytes(cxt, temp, 0);
                     }
-                    connector.WriteBytes(cxt, PrintCommand.blank50, 0);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    public static void invoiceMachinePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt, Bitmap invoicePic, String time, boolean printDetail) {
+        int targetWidth = 456;
+        int targetHeight = invoicePic.getHeight() * 456 / invoicePic.getWidth();
+
+        // 缩放 Bitmap
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(invoicePic, targetWidth, targetHeight, false);
+        if (cxt != null) {
+            invoiceTitlePrint(activity, connector, cxt);
+            activity.runOnUiThread(() -> {
+                try {
+                    int s = 0, index = 0;
+                    byte[] sendData = printDraw(scaledBitmap);
+                    byte[] temp = new byte[8 + (targetWidth / 8)];
+
+                    for (int i = 0; i < 540; i++) {
+                        if (i % 240 == 0) {
+                            connector.WriteBytes(cxt, PrintCommand.reset, 0);
+                        }
+                        index = 0;
+                        temp[index++] = 0x1D;
+                        temp[index++] = 0x76;
+                        temp[index++] = 0x30;
+                        temp[index++] = 0x00;
+                        temp[index++] = (byte) (targetWidth / 8);
+                        temp[index++] = 0x00;
+                        temp[index++] = (byte) 0x01;
+                        temp[index++] = 0x00;
+                        for (int j = 0; j < (targetWidth / 8); j++) {
+                            temp[index++] = sendData[s++];
+                        }
+                        connector.WriteBytes(cxt, PrintCommand.position40, 0);
+                        connector.WriteBytes(cxt, temp, 0);
+                    }
+                    //print detail
+                    connector.WriteBytes(cxt, PrintCommand.reset, 0);
+                    byte[] init = new byte[]{0x1b, 0x21, 0x00, 0x1c, 0x21, 0x00, 0x1d, 0x21, 0x00, 0x1b, 0x56, 0x00, 0x1b, 0x40, 0x1c, 0x26, 0x1B, 0x17, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x1D, 0x4C, 0x50, 0x00};
+                    connector.WriteBytes(cxt, init, 0);
+                    byte[] detailSize = new byte[]{0x1d, 0x21, 0x00};
+                    byte[] deadline = String.format("入 %s 現金", time).getBytes("Big5");
+                    connector.WriteBytes(cxt, PrintCommand.position80, 0);
+                    connector.WriteBytes(cxt, detailSize, 0);
+                    connector.WriteBytes(cxt, deadline, 0);
+
+                    connector.WriteBytes(cxt, PrintCommand.blankA0, 0);
                     connector.WriteBytes(cxt, PrintCommand.cut, 0);
-                    connector.WriteBytes(cxt, PrintCommand.rollback60, 0);
+                    connector.WriteBytes(cxt, PrintCommand.rollback30, 0);
+//                    connector.WriteBytes(cxt, PrintCommand.rollback60, 0);
                     connector.WriteBytes(cxt, PrintCommand.rollForward05, 0);
                     connector.WriteBytes(cxt, PrintCommand.reset, 0);
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            if (printDetail) {
+                Util.setPrintSettingPaperMinus(2, 0);
+            } else {
                 Util.setPrintSettingPaperMinus(1, 0);
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         } else {
             //列印失敗

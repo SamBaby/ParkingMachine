@@ -1,5 +1,6 @@
 package com.example.machine;
 
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Arrays;
+import java.util.Timer;
 import java.util.Vector;
 
 import datamodel.BasicFee;
@@ -935,5 +937,13 @@ public class MainViewModel extends ViewModel {
         super.onCleared();
         cleared = true;
         System.out.println("cleared");
+    }
+
+    private final MutableLiveData<Integer> countdownSeconds = new MutableLiveData<>(0);
+    public void setCountdownSeconds(int seconds){
+        countdownSeconds.postValue(seconds);
+    }
+    public MutableLiveData<Integer> getCountdownSeconds(){
+        return countdownSeconds;
     }
 }

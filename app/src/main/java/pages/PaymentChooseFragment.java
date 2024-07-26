@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.machine.MainActivity;
 import com.example.machine.MainViewModel;
 import com.android.machine.R;
 import com.google.gson.Gson;
@@ -90,10 +91,12 @@ public class PaymentChooseFragment extends Fragment {
     }
 
     private Handler handler = new Handler();
+    private TextView countdownText;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_payment_choose, container, false);
+        countdownText = root.findViewById(R.id.countdown_text);
         if (getActivity() != null) {
             viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             viewModel.getSelectedCars().observe(getViewLifecycleOwner(), this::setCarView);
@@ -101,13 +104,14 @@ public class PaymentChooseFragment extends Fragment {
             viewModel.getDiscountMoney().observe(getViewLifecycleOwner(), this::setDiscount);
             viewModel.getShouldPayMoney().observe(getViewLifecycleOwner(), this::setShouldPay);
             viewModel.getPayTime().observe(getViewLifecycleOwner(), this::setTimeOut);
+            viewModel.getCountdownSeconds().observe(getViewLifecycleOwner(), this::setCountdownView);
             TextView title = root.findViewById(R.id.text_title);
             title.setText(viewModel.getLotName());
             ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
             Button btnCancel = root.findViewById(R.id.button_cancel);
             btnCancel.setOnClickListener(v -> {
                 viewModel.setSelectedCars(null);
-                viewPager.setCurrentItem(0, true);
+                ((MainActivity) getActivity()).goToPage(0, 0, 0);
             });
 
             Button btnCash = root.findViewById(R.id.button_cash);
@@ -118,10 +122,10 @@ public class PaymentChooseFragment extends Fragment {
                         || viewModel.getCoinInputDevice() == null || viewModel.getPaperInputDevice() == null) {
                     viewModel.setSelectedCars(null);
                     Toast.makeText(getActivity(), getString(R.string.coin_broken), Toast.LENGTH_SHORT).show();
-                    viewPager.setCurrentItem(0, true);
+                    ((MainActivity) getActivity()).goToPage(0, 0, 0);
                 } else {
                     viewModel.setPayWay(0);
-                    viewPager.setCurrentItem(3, true);
+                    ((MainActivity) getActivity()).goToPage(3, 0, 50);
                 }
             });
 //            btnEZPay.setOnClickListener(v -> {
@@ -135,6 +139,10 @@ public class PaymentChooseFragment extends Fragment {
         }
         setNoneEditText(root);
         return root;
+    }
+
+    private void setCountdownView(Integer integer) {
+        countdownText.setText(String.valueOf(integer));
     }
 
     private void setNoneEditText(View root) {
@@ -171,7 +179,11 @@ public class PaymentChooseFragment extends Fragment {
             //set car number
             carNumber.setText(car.getCar_number());
             //set time in
-            timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
+            if (car.getTime_pay() != null && !car.getTime_pay().isEmpty()) {
+                timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_pay()));
+            } else {
+                timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
+            }
         }
     }
 

@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
+import com.example.machine.MainActivity;
 import com.example.machine.MainViewModel;
 import com.android.machine.R;
 import com.google.gson.Gson;
@@ -85,7 +86,9 @@ public class SearchFragment extends Fragment {
         }
 
     }
+
     private MainViewModel viewModel;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -129,7 +132,10 @@ public class SearchFragment extends Fragment {
                                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                                     viewModel.setCars(cars);
                                     input.setText("");
-                                    viewPager.setCurrentItem(1, true);
+                                    if (getActivity() != null && getActivity() instanceof  MainActivity) {
+                                        ((MainActivity) getActivity()).goToPage(1,0,50);
+                                    }
+//                                    viewPager.setCurrentItem(1, true);
                                 });
                             }
                         } catch (Exception e) {
@@ -146,14 +152,15 @@ public class SearchFragment extends Fragment {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }else{
+            } else {
                 Toast.makeText(getActivity(), getString(R.string.car_number_over_two), Toast.LENGTH_SHORT).show();
             }
         });
         setNoneEditText(root);
         return root;
     }
-    private void setNoneEditText(View root){
+
+    private void setNoneEditText(View root) {
         EditText txt = root.findViewById(R.id.edit_none);
         txt.addTextChangedListener(new TextWatcher() {
             @Override
@@ -170,6 +177,7 @@ public class SearchFragment extends Fragment {
             }
         });
     }
+
     private boolean checkShouldPay(CarInside car) {
         if (car.getTime_pay() == null || car.getTime_pay().isEmpty()) {
             return true;

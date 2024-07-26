@@ -67,20 +67,28 @@ public class EndingFragment extends Fragment {
         }
     }
 
+    private TextView countdownText;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_ending, container, false);
+        countdownText = root.findViewById(R.id.countdown_text);
         if (getActivity() != null) {
             TextView title = root.findViewById(R.id.text_title);
             MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             title.setText(viewModel.getLotName());
             textTime = root.findViewById(R.id.text_time);
             viewModel.getExitCountTime().observe(getViewLifecycleOwner(), this::setTime);
+            viewModel.getCountdownSeconds().observe(getViewLifecycleOwner(), this::setCountdownView);
         }
         setNoneEditText(root);
         return root;
+    }
+
+    private void setCountdownView(Integer integer) {
+        countdownText.setText(String.valueOf(integer));
     }
 
     private void setNoneEditText(View root) {

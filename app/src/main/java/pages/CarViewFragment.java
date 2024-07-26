@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
+import com.example.machine.MainActivity;
 import com.example.machine.MainViewModel;
 import com.android.machine.R;
 import com.google.gson.Gson;
@@ -27,6 +28,7 @@ import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -64,6 +66,7 @@ public class CarViewFragment extends Fragment {
     Button btnPrevious;
     Button btnNext;
     Button btnCancel;
+    private TextView countdownText;
 
     public CarViewFragment() {
         // Required empty public constructor
@@ -104,31 +107,39 @@ public class CarViewFragment extends Fragment {
         btnCancel = root.findViewById(R.id.button_cancel);
         btnPrevious = root.findViewById(R.id.button_previous);
         btnNext = root.findViewById(R.id.button_next);
+        countdownText = root.findViewById(R.id.countdown_text);
         if (getActivity() != null) {
             ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
             btnCancel.setOnClickListener(v -> {
-                viewPager.setCurrentItem(0, true);
+//                viewPager.setCurrentItem(0, true);
+                ((MainActivity) getActivity()).goToPage(0, 0, 0);
             });
             btnPrevious.setOnClickListener(v -> {
                 if (cars != null && index > 0) {
                     index--;
                     refreshCarView();
+                    ((MainActivity) getActivity()).resetCountdown(50, 0);
                 }
             });
             btnNext.setOnClickListener(v -> {
                 if (cars != null && ((index + 1) * 4 < cars.size())) {
                     index++;
                     refreshCarView();
+                    ((MainActivity) getActivity()).resetCountdown(50, 0);
                 }
             });
             MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             viewModel.getCars().observe(getViewLifecycleOwner(), this::setCarView);
-
+            viewModel.getCountdownSeconds().observe(getViewLifecycleOwner(), this::setCountdownView);
             TextView title = root.findViewById(R.id.text_title);
             title.setText(viewModel.getLotName());
         }
         setNoneEditText(root);
         return root;
+    }
+
+    private void setCountdownView(Integer integer) {
+        countdownText.setText(String.valueOf(integer));
     }
 
     private void setNoneEditText(View root) {
@@ -227,7 +238,11 @@ public class CarViewFragment extends Fragment {
                 e.printStackTrace();
             }
             carNumber.setText(car.getCar_number());
-            time.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
+            if (car.getTime_pay() != null && !car.getTime_pay().isEmpty()) {
+                time.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_pay()));
+            } else {
+                time.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
+            }
 
             view.setOnClickListener(v -> {
                 if (getActivity() != null) {
@@ -235,18 +250,20 @@ public class CarViewFragment extends Fragment {
                     viewModel.setSelectedCars(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                     if (setSelectedCar(car)) {//shouldPay >0
-                        viewPager.setCurrentItem(2, true);
+                        ((MainActivity) getActivity()).goToPage(2, 0, 50);
+//                        viewPager.setCurrentItem(2, true);
                     } else {
                         viewModel.setSelectedCars(null);
                         viewModel.setExitCountTime();
-                        viewPager.setCurrentItem(6);
-                        // Schedule to change the page to index 0 after 10 seconds
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                viewPager.setCurrentItem(0);
-                            }
-                        }, 5000); // 10000 milliseconds = 10 seconds
+                        ((MainActivity) getActivity()).goToPage(6, 0, 5);
+//                        viewPager.setCurrentItem(6);
+//                        // Schedule to change the page to index 0 after 10 seconds
+//                        handler.postDelayed(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                viewPager.setCurrentItem(0);
+//                            }
+//                        }, 5000); // 10000 milliseconds = 10 seconds
                     }
                 }
             });
@@ -282,21 +299,22 @@ public class CarViewFragment extends Fragment {
                 if (getActivity() != null) {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
-                    setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                     if (setSelectedCar(car)) {//shouldPay >0
-                        viewPager.setCurrentItem(2, true);
+                        ((MainActivity) getActivity()).goToPage(2, 0, 50);
+//                        viewPager.setCurrentItem(2, true);
                     } else {
                         viewModel.setSelectedCars(null);
                         viewModel.setExitCountTime();
-                        viewPager.setCurrentItem(6);
-                        // Schedule to change the page to index 0 after 10 seconds
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                viewPager.setCurrentItem(0);
-                            }
-                        }, 5000); // 10000 milliseconds = 10 seconds
+                        ((MainActivity) getActivity()).goToPage(6, 0, 5);
+//                        viewPager.setCurrentItem(6);
+//                        // Schedule to change the page to index 0 after 10 seconds
+//                        handler.postDelayed(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                viewPager.setCurrentItem(0);
+//                            }
+//                        }, 5000); // 10000 milliseconds = 10 seconds
                     }
                 }
             });
@@ -331,21 +349,22 @@ public class CarViewFragment extends Fragment {
                 if (getActivity() != null) {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
-                    setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                     if (setSelectedCar(car)) {//shouldPay >0
-                        viewPager.setCurrentItem(2, true);
+                        ((MainActivity) getActivity()).goToPage(2, 0, 50);
+//                        viewPager.setCurrentItem(2, true);
                     } else {
                         viewModel.setSelectedCars(null);
                         viewModel.setExitCountTime();
-                        viewPager.setCurrentItem(6);
-                        // Schedule to change the page to index 0 after 10 seconds
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                viewPager.setCurrentItem(0);
-                            }
-                        }, 5000); // 10000 milliseconds = 10 seconds
+                        ((MainActivity) getActivity()).goToPage(6, 0, 5);
+//                        viewPager.setCurrentItem(6);
+//                        // Schedule to change the page to index 0 after 10 seconds
+//                        handler.postDelayed(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                viewPager.setCurrentItem(0);
+//                            }
+//                        }, 5000); // 10000 milliseconds = 10 seconds
                     }
                 }
             });
@@ -380,21 +399,22 @@ public class CarViewFragment extends Fragment {
                 if (getActivity() != null) {
                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                     viewModel.setSelectedCars(car);
-                    setSelectedCar(car);
                     ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
                     if (setSelectedCar(car)) {//shouldPay >0
-                        viewPager.setCurrentItem(2, true);
+                        ((MainActivity) getActivity()).goToPage(2, 0, 50);
+//                        viewPager.setCurrentItem(2, true);
                     } else {
                         viewModel.setSelectedCars(null);
                         viewModel.setExitCountTime();
-                        viewPager.setCurrentItem(6);
-                        // Schedule to change the page to index 0 after 10 seconds
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                viewPager.setCurrentItem(0);
-                            }
-                        }, 5000); // 10000 milliseconds = 10 seconds
+                        ((MainActivity) getActivity()).goToPage(6, 0, 5);
+//                        viewPager.setCurrentItem(6);
+//                        // Schedule to change the page to index 0 after 10 seconds
+//                        handler.postDelayed(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                viewPager.setCurrentItem(0);
+//                            }
+//                        }, 5000); // 10000 milliseconds = 10 seconds
                     }
                 }
             });

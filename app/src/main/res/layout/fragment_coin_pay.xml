@@ -6,6 +6,18 @@
     android:background="@color/grey_background"
     tools:context="pages.CoinPayFragment">
 
+    <TextView
+        android:id="@+id/countdown_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </TextView>
+
     <include
         android:id="@+id/header"
         layout="@layout/header" />

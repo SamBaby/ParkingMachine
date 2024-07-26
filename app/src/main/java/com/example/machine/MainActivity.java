@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -53,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private FT_Device coin10Device;
     private UsbConnector printConnector;
     private UsbConnectionContext printCxt;
+    private ViewPager viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,10 +82,13 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-        ViewPager viewPager = findViewById(R.id.view_pager);
+        viewPager = findViewById(R.id.view_pager);
         MachinePagerAdapter adapter = new MachinePagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
         model = new ViewModelProvider(this).get(MainViewModel.class);
+        handler = new Handler();
+        countdownHandler = new Handler();
+
         try {
             coinInputManager = D2xxManager.getInstance(this);
             System.out.println("main try FTDI");
@@ -260,5 +265,87 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("disconnect print machine");
             printConnector.Disconnect(1027, 24593);
         }
+    }
+
+    private Handler handler;
+    private int currentPage = 0;
+    private int numPages;
+    private int countdownSeconds = 50;
+    private Handler countdownHandler;
+    private Runnable countdownRunnable;
+
+    // 启动倒计时
+    public void startCountdown(int seconds, int nextNumber) {
+        countdownSeconds = seconds; // 重置倒计时时间
+        countdownRunnable = new countdownRunnable(nextNumber);
+        countdownHandler.postDelayed(countdownRunnable, 1000);
+    }
+
+    // 重置倒计时
+    public void resetCountdown(int seconds, int nextNumber) {
+        if (countdownRunnable != null) {
+            countdownHandler.removeCallbacks(countdownRunnable);
+            startCountdown(seconds, nextNumber);
+        }
+    }
+
+    public void cancelCountdown() {
+        if (countdownRunnable != null) {
+            countdownHandler.removeCallbacks(countdownRunnable);
+            countdownRunnable = null;
+        }
+    }
+
+    // 按钮点击事件调用此方法
+    public void goToPage(int number, int nextNumber, int seconds) {
+        cancelCountdown();
+        currentPage = viewPager.getCurrentItem();
+        handler.post(new pageSwitcher(number, nextNumber, seconds));
+    }
+
+    public class pageSwitcher implements Runnable {
+        private final int number;
+        private final int nextNumber;
+        private final int seconds;
+
+        public pageSwitcher(int number, int nextNumber, int seconds) {
+            this.number = number;
+            this.nextNumber = nextNumber;
+            this.seconds = seconds;
+        }
+
+        @Override
+        public void run() {
+            viewPager.setCurrentItem(number, false);
+            currentPage = number;
+            if (seconds > 0) {
+                model.setCountdownSeconds(seconds);
+                startCountdown(seconds, nextNumber);
+            }
+        }
+    }
+
+    public class countdownRunnable implements Runnable {
+        private final int number;
+
+        public countdownRunnable(int number) {
+            this.number = number;
+        }
+
+        @Override
+        public void run() {
+            countdownSeconds--;
+            model.setCountdownSeconds(countdownSeconds);
+            if (countdownSeconds <= 0) {
+                viewPager.setCurrentItem(number, false);
+                currentPage = number;
+            } else {
+                countdownHandler.postDelayed(this, 1000);
+            }
+        }
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
     }
 }

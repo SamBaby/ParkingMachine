@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import com.android.machine.R;
+import com.example.machine.MainActivity;
 import com.example.machine.MainViewModel;
 
 import datamodel.CarInside;
@@ -80,14 +81,18 @@ public class CompanyIDFragment extends Fragment {
         }
     }
 
+    private TextView countdownText;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_company_i_d, container, false);
+        countdownText = root.findViewById(R.id.countdown_text);
         if (getActivity() != null) {
             viewPager = getActivity().findViewById(R.id.view_pager);
             viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+            viewModel.getCountdownSeconds().observe(getViewLifecycleOwner(), this::setCountdownView);
             TextView title = root.findViewById(R.id.text_title);
             title.setText(viewModel.getLotName());
         }
@@ -96,6 +101,14 @@ public class CompanyIDFragment extends Fragment {
         progressBar = root.findViewById(R.id.progressBar);
         setNoneEditText(root);
         return root;
+    }
+
+    private void setCountdownView(Integer integer) {
+        countdownText.setText(String.valueOf(integer));
+        if (integer == 1 && ((MainActivity) getActivity()).getCurrentPage() == 4) {
+            ((MainActivity) getActivity()).cancelCountdown();
+            new printTask().execute();
+        }
     }
 
     private void setNoneEditText(View root) {
@@ -177,8 +190,8 @@ public class CompanyIDFragment extends Fragment {
             if (!id.isEmpty()) {
                 Toast.makeText(getActivity(), getString(R.string.company_carrier_not_same_time), Toast.LENGTH_SHORT).show();
             } else {
-                viewPager.setCurrentItem(5, true);
                 input.setText("");
+                ((MainActivity) getActivity()).goToPage(5, 0, 30);
             }
         });
         buttonPrint = view.findViewById(R.id.button_print);
@@ -217,7 +230,7 @@ public class CompanyIDFragment extends Fragment {
                     if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
                         try {
                             String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                    data.getMerchantID(), data.getMachineID(), id, "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                                    data.getMerchantID(), data.getMachineID(), id, "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
                             if (invoice != null && !invoice.isEmpty()) {
                                 number.set(invoice);
                             } else {
@@ -238,9 +251,7 @@ public class CompanyIDFragment extends Fragment {
                     }).start();
                     viewModel.setSelectedCars(null);
                     viewModel.setExitCountTime();
-                    handler.postDelayed(() -> viewPager.setCurrentItem(6), 0);
-                    // Schedule to change the page to index 0 after 10 seconds
-                    handler.postDelayed(() -> viewPager.setCurrentItem(0), 5000); // 10000 milliseconds = 10 seconds
+                    ((MainActivity) getActivity()).goToPage(6, 0, 5);
                 }
             } else {
                 boolean idPass = checkCompanyID(id);
@@ -251,7 +262,7 @@ public class CompanyIDFragment extends Fragment {
                         if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
                             try {
                                 String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                        data.getMerchantID(), data.getMachineID(), id, "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV());
+                                        data.getMerchantID(), data.getMachineID(), id, "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
                                 if (invoice != null && !invoice.isEmpty()) {
                                     number.set(invoice);
                                 } else {
@@ -275,9 +286,10 @@ public class CompanyIDFragment extends Fragment {
                         });
                         viewModel.setSelectedCars(null);
                         viewModel.setExitCountTime();
-                        handler.postDelayed(() -> viewPager.setCurrentItem(6), 0);
-                        // Schedule to change the page to index 0 after 10 seconds
-                        handler.postDelayed(() -> viewPager.setCurrentItem(0), 5000); // 10000 milliseconds = 10 seconds
+//                        handler.postDelayed(() -> viewPager.setCurrentItem(6), 0);
+//                        // Schedule to change the page to index 0 after 10 seconds
+//                        handler.postDelayed(() -> viewPager.setCurrentItem(0), 5000); // 10000 milliseconds = 10 seconds
+                        ((MainActivity) getActivity()).goToPage(6, 0, 5);
                     }
                 } else {
                     getActivity().runOnUiThread(() -> {
@@ -285,6 +297,56 @@ public class CompanyIDFragment extends Fragment {
                         input.setText("");
                     });
                 }
+            }
+            return null;
+        }
+    }
+
+    private class printTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // Show the progress bar before starting the background task
+            progressBar.setVisibility(View.VISIBLE);
+            buttonPrint.setEnabled(false);
+            buttonCarrier.setEnabled(false);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            // Perform the background task here
+            // For example, a long-running operation like downloading data or heavy computation
+            // Simulating a long-running task with Thread.sleep()
+            ECPayData data = Util.getECPayData();
+            if (data != null) {
+                CarInside car = viewModel.getSelectedCars().getValue();
+                Var<String> number = new Var<>("");
+                if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
+                    try {
+                        String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
+                                data.getMerchantID(), data.getMachineID(), "", "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
+                        if (invoice != null && !invoice.isEmpty()) {
+                            number.set(invoice);
+                        } else {
+                            getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.internet_error), Toast.LENGTH_SHORT).show());
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.print_broken), Toast.LENGTH_SHORT).show());
+                }
+                new Thread(() -> {
+                    String payTime = Util.getServerTime();
+                    ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(),
+                            viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
+                    ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime,
+                            viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
+                }).start();
+                viewModel.setSelectedCars(null);
+                viewModel.setExitCountTime();
+                ((MainActivity) getActivity()).goToPage(6, 0, 5);
             }
             return null;
         }

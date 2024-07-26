@@ -22,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.machine.MainActivity;
 import com.example.machine.MainViewModel;
 import com.android.machine.R;
 import com.ftdi.j2xx.FT_Device;
@@ -86,11 +87,13 @@ public class CoinPayFragment extends Fragment {
     }
 
     MainViewModel viewModel;
+    private TextView countdownText;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_coin_pay, container, false);
+        countdownText = root.findViewById(R.id.countdown_text);
         if (getActivity() != null) {
             viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
             viewModel.getSelectedCars().observe(getViewLifecycleOwner(), this::setCarView);
@@ -100,15 +103,17 @@ public class CoinPayFragment extends Fragment {
             viewModel.getPayTime().observe(getViewLifecycleOwner(), this::setPayTime);
             viewModel.getPayWay().observe(getViewLifecycleOwner(), this::startPay);
             viewModel.getTotalPay().observe(getViewLifecycleOwner(), this::refreshTotalPay);
+            viewModel.getCountdownSeconds().observe(getViewLifecycleOwner(), this::setCountdownView);
             Button cancelBtn = root.findViewById(R.id.cancel_button);
             cancelBtn.setOnClickListener(v -> {
                 viewModel.setSelectedCars(null);
                 boolean success = viewModel.cancelCoinPay();
-                if(!success){
+                if (!success) {
                     Toast.makeText(getActivity(), getString(R.string.coin_not_enough), Toast.LENGTH_SHORT).show();
                 }
-                ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-                viewPager.setCurrentItem(0, true);
+//                ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
+//                viewPager.setCurrentItem(0, true);
+                ((MainActivity) getActivity()).goToPage(0, 0, 0);
             });
 
             TextView title = root.findViewById(R.id.text_title);
@@ -117,6 +122,10 @@ public class CoinPayFragment extends Fragment {
         }
         setNoneEditText(root);
         return root;
+    }
+
+    private void setCountdownView(Integer integer) {
+        countdownText.setText(String.valueOf(integer));
     }
 
     private void setNoneEditText(View root) {
@@ -153,7 +162,12 @@ public class CoinPayFragment extends Fragment {
             //set car number
             carNumber.setText(car.getCar_number());
             //set time in
-            timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
+            if (car.getTime_pay() != null && !car.getTime_pay().isEmpty()) {
+                timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_pay()));
+            } else {
+                timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
+            }
+
 
             timeOut.setText(String.format("%s %s", getResources().getString(R.string.exit_time), viewModel.getPayTime()));
         }
@@ -163,12 +177,21 @@ public class CoinPayFragment extends Fragment {
         if (getView() != null && getActivity() != null) {
             TextView text = getView().findViewById(R.id.text_already_pay);
             text.setText(String.valueOf(integer));
-            if (viewModel.isStartCoinPay() && integer >= viewModel.getTotalMoney().getValue()) {
-                if (getActivity() != null) {
+            if (viewModel.isStartCoinPay()) {
+                if (integer >= viewModel.getTotalMoney().getValue()) {
                     viewModel.stopCoinPay();
                     new BackgroundTask().execute();
+                } else {
+                    ((MainActivity) getActivity()).resetCountdown(50, 0);
                 }
+
             }
+//            if (viewModel.isStartCoinPay() && integer >= viewModel.getTotalMoney().getValue()) {
+//                if (getActivity() != null) {
+//                    viewModel.stopCoinPay();
+//                    new BackgroundTask().execute();
+//                }
+//            }
         }
     }
 
@@ -260,8 +283,9 @@ public class CoinPayFragment extends Fragment {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
-            handler.postDelayed(() -> viewPager.setCurrentItem(4), 0);
+//            ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
+//            handler.postDelayed(() -> viewPager.setCurrentItem(4), 0);
+            ((MainActivity) getActivity()).goToPage(4, 0, 30);
             return null;
         }
 
