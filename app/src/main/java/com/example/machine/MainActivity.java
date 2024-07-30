@@ -43,6 +43,7 @@ import event.Var;
 import usb.UsbConnectionContext;
 import usb.UsbConnector;
 import util.ApacheServerRequest;
+import util.CustomExceptionHandler;
 import util.Util;
 
 public class MainActivity extends AppCompatActivity {
@@ -61,6 +62,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        // 设置自定义的UncaughtExceptionHandler
+        Thread.setDefaultUncaughtExceptionHandler(
+                new CustomExceptionHandler(this, MainActivity.class)
+        );
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);

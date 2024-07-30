@@ -121,7 +121,7 @@ public class PaymentChooseFragment extends Fragment {
                 if (viewModel.getCoin10Device() == null || viewModel.getCoin50Device() == null
                         || viewModel.getCoinInputDevice() == null || viewModel.getPaperInputDevice() == null) {
                     viewModel.setSelectedCars(null);
-                    Toast.makeText(getActivity(), getString(R.string.coin_broken), Toast.LENGTH_SHORT).show();
+                    Util.showWarningDialog(getContext(), getString(R.string.coin_broken));
                     ((MainActivity) getActivity()).goToPage(0, 0, 0);
                 } else {
                     viewModel.setPayWay(0);

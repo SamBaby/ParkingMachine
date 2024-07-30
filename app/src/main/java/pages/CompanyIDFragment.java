@@ -84,8 +84,7 @@ public class CompanyIDFragment extends Fragment {
     private TextView countdownText;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_company_i_d, container, false);
         countdownText = root.findViewById(R.id.countdown_text);
@@ -188,7 +187,7 @@ public class CompanyIDFragment extends Fragment {
         buttonCarrier.setOnClickListener(v -> {
             String id = input.getText().toString();
             if (!id.isEmpty()) {
-                Toast.makeText(getActivity(), getString(R.string.company_carrier_not_same_time), Toast.LENGTH_SHORT).show();
+                Util.showWarningDialog(getContext(), getString(R.string.company_carrier_not_same_time));
             } else {
                 input.setText("");
                 ((MainActivity) getActivity()).goToPage(5, 0, 30);
@@ -225,29 +224,27 @@ public class CompanyIDFragment extends Fragment {
             ECPayData data = Util.getECPayData();
             if (id.isEmpty()) {
                 if (data != null) {
+                    ((MainActivity) getActivity()).cancelCountdown();
                     CarInside car = viewModel.getSelectedCars().getValue();
                     Var<String> number = new Var<>("");
                     if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
                         try {
-                            String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                    data.getMerchantID(), data.getMachineID(), id, "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
+                            String invoice = EcpayFunction.invoiceIssue(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(), data.getMerchantID(), id, "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
                             if (invoice != null && !invoice.isEmpty()) {
                                 number.set(invoice);
                             } else {
-                                getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.internet_error), Toast.LENGTH_SHORT).show());
+                                getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.internet_error)));
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     } else {
-                        getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.print_broken), Toast.LENGTH_SHORT).show());
+                        getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.print_broken)));
                     }
                     new Thread(() -> {
                         String payTime = Util.getServerTime();
-                        ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(),
-                                viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
-                        ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime,
-                                viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
+                        ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(), viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
+                        ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime, viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
                     }).start();
                     viewModel.setSelectedCars(null);
                     viewModel.setExitCountTime();
@@ -257,29 +254,27 @@ public class CompanyIDFragment extends Fragment {
                 boolean idPass = checkCompanyID(id);
                 if (idPass) {
                     if (data != null) {
+                        ((MainActivity) getActivity()).cancelCountdown();
                         CarInside car = viewModel.getSelectedCars().getValue();
                         Var<String> number = new Var<>("");
                         if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
                             try {
-                                String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                        data.getMerchantID(), data.getMachineID(), id, "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
+                                String invoice = EcpayFunction.invoiceIssue(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(), data.getMerchantID(), id, "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
                                 if (invoice != null && !invoice.isEmpty()) {
                                     number.set(invoice);
                                 } else {
-                                    getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.internet_error), Toast.LENGTH_SHORT).show());
+                                    getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.internet_error)));
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         } else {
-                            getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.print_broken), Toast.LENGTH_SHORT).show());
+                            getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.print_broken)));
                         }
                         new Thread(() -> {
                             String payTime = Util.getServerTime();
-                            ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(),
-                                    viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
-                            ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime,
-                                    viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
+                            ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(), viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
+                            ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime, viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
                         }).start();
                         getActivity().runOnUiThread(() -> {
                             input.setText("");
@@ -293,7 +288,7 @@ public class CompanyIDFragment extends Fragment {
                     }
                 } else {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getActivity(), getString(R.string.company_id_not_found), Toast.LENGTH_SHORT).show();
+                        Util.showWarningDialog(getContext(), getString(R.string.company_id_not_found));
                         input.setText("");
                     });
                 }
@@ -324,25 +319,22 @@ public class CompanyIDFragment extends Fragment {
                 Var<String> number = new Var<>("");
                 if (viewModel.getInvoiceConnector() != null && viewModel.getInvoiceCxt() != null) {
                     try {
-                        String invoice = EcpayFunction.invoiceIssueOffline(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(),
-                                data.getMerchantID(), data.getMachineID(), "", "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
+                        String invoice = EcpayFunction.invoiceIssue(data.getTest() == 1, getActivity(), viewModel.getInvoiceConnector(), viewModel.getInvoiceCxt(), data.getMerchantID(), "", "", viewModel.getTotalMoney().getValue(), data.getHashKey(), data.getHashIV(), car.getTime_in());
                         if (invoice != null && !invoice.isEmpty()) {
                             number.set(invoice);
                         } else {
-                            getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.internet_error), Toast.LENGTH_SHORT).show());
+                            getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.internet_error)));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else {
-                    getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), getString(R.string.print_broken), Toast.LENGTH_SHORT).show());
+                    getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.print_broken)));
                 }
                 new Thread(() -> {
                     String payTime = Util.getServerTime();
-                    ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(),
-                            viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
-                    ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime,
-                            viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
+                    ApacheServerRequest.setCarInsidePay(car.getCar_number(), payTime, viewModel.getTotalMoney().getValue(), viewModel.getDiscountMoney().getValue(), number.get(), viewModel.getPayment());
+                    ApacheServerRequest.addPayHistory(car.getCar_number(), car.getTime_in(), payTime, viewModel.getTotalMoney().getValue(), number.get(), viewModel.getPayment());
                 }).start();
                 viewModel.setSelectedCars(null);
                 viewModel.setExitCountTime();

@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Picture;
 import android.os.Build;
+import android.os.Environment;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -25,6 +26,9 @@ import org.w3c.dom.Document;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -483,6 +487,97 @@ public class EcpayFunction {
         }
     }
 
+    public static String invoiceIssue(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String companyID, String carrierID, int amount, String key, String IV, String enterDate) {
+        Var<String> invoiceNo = new Var<>("");
+        Var<String> invoiceDate = new Var<>("");
+        Thread t = new Thread(() -> {
+            Date currentTime = Calendar.getInstance().getTime();
+            long unixTime = currentTime.getTime();
+            EnvoiceData data = new EnvoiceData();
+            data.setMerchantID(merchantID);
+            data.setRelateNumber("PJ" + String.valueOf(unixTime));
+            data.setCustomerIdentifier(companyID);
+            data.setCustomerID("");
+            data.setCustomerName("客戶名稱");
+            data.setCustomerAddr("客戶地址");
+            data.setCustomerPhone("0912345678");
+            data.setCustomerEmail("test@ecpay.com.tw");
+            data.setClearanceMark("");
+            data.setPrint(carrierID.isEmpty() ? "1" : "0");
+            data.setDonation("0");
+            data.setLoveCode("");
+            data.setCarrierType(carrierID.isEmpty() ? "" : "3");
+            data.setCarrierNum(carrierID);
+            data.setTaxType(1);
+            data.setSpecialTaxType(0);
+            data.setSalesAmount(amount);
+            data.setInvType("07");
+            data.setVat("1");
+            String remark = "";
+            try {
+                remark = String.format("入 %s 現金", enterDate);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            data.setInvoiceRemark(remark);
+            data.setItems(new EnvoiceItem[]{new EnvoiceItem()});
+            data.getItems()[0] = new EnvoiceItem();
+            data.getItems()[0].setItemSeq(1);
+            data.getItems()[0].setItemName("停車費");
+            data.getItems()[0].setItemCount(1);
+            data.getItems()[0].setItemWord("次");
+            data.getItems()[0].setItemPrice(amount);
+            data.getItems()[0].setItemTaxType("");
+            data.getItems()[0].setItemAmount(amount);
+            data.getItems()[0].setItemRemark("");
+            EnvoiceJson json = new EnvoiceJson();
+            RqHeader header = new RqHeader();
+            header.setTimestamp(unixTime);
+
+            json.MerchantID = merchantID;
+            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            json.RqHeader = header;
+            String dataString = gson.toJson(data);
+            json.Data = EcpayFunction.ECPayEncrypt(dataString, algorithm, key, IV);
+            String jsonText = gson.toJson(json);
+
+            try {
+                String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/Issue", jsonText, "UTF-8");
+                if (res != null) {
+                    JSONObject ret = new JSONObject(res);
+                    if (!ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
+                        JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
+                        if (returnData.getInt("RtnCode") == 1) {
+                            invoiceNo.set(returnData.getString("InvoiceNo"));
+                            invoiceDate.set(returnData.getString("InvoiceDate").split(" ")[0]);
+                            if (carrierID.isEmpty()) {
+                                boolean printResult = invoicePrint(test, activity, connector, cxt, merchantID, algorithm, key, IV, invoiceNo.get(), invoiceDate.get(), enterDate, (companyID != null && !companyID.isEmpty()));
+                                if (!printResult) {
+                                    invoiceNo.set(null);
+                                } else {
+                                    invoiceNo.set(invoiceNo.get());
+                                }
+                            } else {
+                                invoiceNo.set(invoiceNo.get());
+                            }
+                        } else {
+                            //失敗
+                        }
+                    }
+                }
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return invoiceNo.get();
+    }
+
     public static String invoiceIssueOffline(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String machineID, String companyID, String carrierID, int amount, String key, String IV, String enterDate) {
         Var<String> billNumber = new Var<>();
         Thread t = new Thread(() -> {
@@ -594,6 +689,7 @@ public class EcpayFunction {
 
     public static boolean invoicePrint(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date, String enterDate, boolean printDetail) {
         Var<Boolean> result = new Var<>(false);
+        Var<WebView> webViewVar = new Var<>();
         if (invoiceNumber != null && date != null && !invoiceNumber.isEmpty() && !date.isEmpty()) {
             Thread t = new Thread(() -> {
                 long unixTime = System.currentTimeMillis() / 1000L;
@@ -622,42 +718,61 @@ public class EcpayFunction {
                             String url = returnData.getString("InvoiceHtml");
                             if (!url.isEmpty()) {
                                 result.set(true);
-                                activity.runOnUiThread(() -> {
-                                    WebView view = new WebView(activity);
+                                Var<Bitmap> invoicePic = new Var<>();
+                                int i = 0;
+                                Thread tPrint = new Thread(() -> {
+                                    activity.runOnUiThread(() -> {
+                                        webViewVar.set(new WebView(activity));
 
-                                    view.setPictureListener(new WebView.PictureListener() {
-                                        boolean print = true;
+                                        webViewVar.get().setPictureListener(new WebView.PictureListener() {
+                                            boolean print = true;
 
-                                        @Override
-                                        public void onNewPicture(WebView view, @Nullable Picture picture) {
-                                            if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
-                                                view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                                                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                                                view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-                                                view.setDrawingCacheEnabled(true);
-                                                view.buildDrawingCache();
-                                                Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-                                                Canvas canvas = new Canvas(bitmap);
-                                                view.draw(canvas);
-                                                invoiceMachinePrint(activity, connector, cxt, bitmap, enterDate, printDetail);
-                                                view.setVisibility(View.GONE);
-                                                print = false;
-                                                view.destroy();
-                                            } else if (print) {
-                                                view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                                                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                                                view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                            @Override
+                                            public void onNewPicture(WebView view, @Nullable Picture picture) {
+                                                if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
+                                                    view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                                            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                                                    view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                    view.setDrawingCacheEnabled(true);
+                                                    view.buildDrawingCache();
+                                                    Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+                                                    Canvas canvas = new Canvas(bitmap);
+                                                    view.draw(canvas);
+                                                    invoicePic.set(bitmap);
+                                                    view.setVisibility(View.GONE);
+                                                    print = false;
+                                                    view.destroy();
+                                                    webViewVar.set(null);
+                                                } else if (print) {
+                                                    view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                                            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                                                    view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                }
+
                                             }
+                                        });
 
-                                        }
+                                        // 启用 JavaScript
+                                        WebSettings webSettings = webViewVar.get().getSettings();
+                                        webSettings.setJavaScriptEnabled(true);
+                                        // 加载 HTML 内容
+                                        webViewVar.get().loadUrl(url);
                                     });
-
-                                    // 启用 JavaScript
-                                    WebSettings webSettings = view.getSettings();
-                                    webSettings.setJavaScriptEnabled(true);
-                                    // 加载 HTML 内容
-                                    view.loadUrl(url);
                                 });
+                                while (invoicePic.get() == null && i < 3) {
+                                    i++;
+                                    tPrint.start();
+                                    Thread.sleep(3000);
+                                    if (webViewVar.get() != null) {
+                                        activity.runOnUiThread(()-> webViewVar.get().destroy());
+                                        webViewVar.set(null);
+                                    }
+                                }
+                                if (invoicePic.get() != null) {
+                                    invoiceMachinePrint(activity, connector, cxt, invoicePic.get(), enterDate, printDetail);
+                                }else{
+                                    Toast.makeText(activity, "列印發票失敗123",Toast.LENGTH_LONG).show();
+                                }
                             } else {
                                 //發票網址取得失敗
                             }
@@ -728,7 +843,6 @@ public class EcpayFunction {
     public static void invoiceMachinePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt, Bitmap invoicePic, String time, boolean printDetail) {
         int targetWidth = 456;
         int targetHeight = invoicePic.getHeight() * 456 / invoicePic.getWidth();
-
         // 缩放 Bitmap
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(invoicePic, targetWidth, targetHeight, false);
         if (cxt != null) {
@@ -738,8 +852,8 @@ public class EcpayFunction {
                     int s = 0, index = 0;
                     byte[] sendData = printDraw(scaledBitmap);
                     byte[] temp = new byte[8 + (targetWidth / 8)];
-
-                    for (int i = 0; i < 540; i++) {
+                    int h = printDetail ? targetHeight : targetHeight - 180;
+                    for (int i = 0; i < 600; i++) {
                         if (i % 240 == 0) {
                             connector.WriteBytes(cxt, PrintCommand.reset, 0);
                         }
@@ -779,7 +893,7 @@ public class EcpayFunction {
                 }
             });
             if (printDetail) {
-                Util.setPrintSettingPaperMinus(2, 0);
+                Util.setPrintSettingPaperMinus(1, 0);
             } else {
                 Util.setPrintSettingPaperMinus(1, 0);
             }

@@ -8,6 +8,7 @@ import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import com.android.machine.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -452,7 +453,7 @@ public class Util {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(serverTime.get() ==null || serverTime.get().isEmpty()){
+        if (serverTime.get() == null || serverTime.get().isEmpty()) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.TAIWAN);
             Date nowDate = new Date();
             serverTime.set(format.format(nowDate));
@@ -460,7 +461,7 @@ public class Util {
         return serverTime.get();
     }
 
-    public static String getEnvoiceTitleBase64(){
+    public static String getEnvoiceTitleBase64() {
         return "iVBORw0KGgoAAAANSUhEUgAAAcgAAABcCAIAAABlQ7JcAAAAA3NCSVQICAjb4U/gAAAIwUlEQVR4\n" +
                 "nO2d0bKkKgxF7an7/7/c89A1lpeQECAo4FpPM30wRJRNCIqf7/d7AABAHH+edgAAYDcQVgCAYBBW\n" +
                 "AIBgEFYAgGAQVgCAYBBWAIBgEFYAgGAQVgCAYBBWAIBgEFYAgGD+e9oBGMLn8/EU44VmgBEQsb4a\n" +
@@ -502,5 +503,27 @@ public class Util {
                 "x2jhC0e1yIWFR+7mqHM/O6QWy9cGrXdSNSX3/OhEjt89rVE1GGgl5SGPX51HQFgzeGZAR+nuqcqC\n" +
                 "1XqVvX2vKlMbfRRLGsNM57JVNnXo1CD/ZLM2g5w9UKOzBRqOPQcbLaHUbLkNeVu+Ngnw4/nRHgBg\n" +
                 "M9iPFQAgGIQVACCYv1y+G6thhN01AAAAAElFTkSuQmCC";
+    }
+
+    public static void showWarningDialog(Context context, String text) {
+        final View dialogView = View.inflate(context, R.layout.warning_dialog, null);
+        TextView textView = dialogView.findViewById(R.id.warning_text);
+        textView.setText(text);
+        final AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+        dialogView.findViewById(R.id.confirm_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.dismiss();
+            }
+        });
+        alertDialog.setView(dialogView);
+        alertDialog.show();
+    }
+
+    public static void showRestartDialog(Context context) {
+        final View dialogView = View.inflate(context, R.layout.restart_dialog, null);
+        final AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+        alertDialog.setView(dialogView);
+        alertDialog.show();
     }
 }

@@ -11,22 +11,20 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
+import com.android.machine.R;
 import com.example.machine.MainActivity;
 import com.example.machine.MainViewModel;
-import com.android.machine.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -37,6 +35,7 @@ import datamodel.CarInside;
 import datamodel.RegularPass;
 import event.Var;
 import util.ApacheServerRequest;
+import util.Util;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -132,8 +131,8 @@ public class SearchFragment extends Fragment {
                                     MainViewModel viewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
                                     viewModel.setCars(cars);
                                     input.setText("");
-                                    if (getActivity() != null && getActivity() instanceof  MainActivity) {
-                                        ((MainActivity) getActivity()).goToPage(1,0,50);
+                                    if (getActivity() != null && getActivity() instanceof MainActivity) {
+                                        ((MainActivity) getActivity()).goToPage(1, 0, 50);
                                     }
 //                                    viewPager.setCurrentItem(1, true);
                                 });
@@ -147,13 +146,13 @@ public class SearchFragment extends Fragment {
                     t.start();
                     t.join();
                     if (!found.get()) {
-                        Toast.makeText(getActivity(), getString(R.string.car_id_not_found), Toast.LENGTH_SHORT).show();
+                        Util.showWarningDialog(getContext(), getString(R.string.car_id_not_found));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             } else {
-                Toast.makeText(getActivity(), getString(R.string.car_number_over_two), Toast.LENGTH_SHORT).show();
+                Util.showWarningDialog(getContext(), getString(R.string.car_number_over_two));
             }
         });
         setNoneEditText(root);

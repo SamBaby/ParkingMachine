@@ -4,11 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.viewpager.widget.ViewPager;
-
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,19 +15,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.android.machine.R;
 import com.example.machine.MainActivity;
 import com.example.machine.MainViewModel;
-import com.android.machine.R;
-import com.ftdi.j2xx.FT_Device;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import datamodel.CarInside;
-import datamodel.ECPayData;
-import ecpay.EcpayFunction;
 import event.Var;
 import util.ApacheServerRequest;
 import util.Util;
@@ -109,7 +100,7 @@ public class CoinPayFragment extends Fragment {
                 viewModel.setSelectedCars(null);
                 boolean success = viewModel.cancelCoinPay();
                 if (!success) {
-                    Toast.makeText(getActivity(), getString(R.string.coin_not_enough), Toast.LENGTH_SHORT).show();
+                    Util.showWarningDialog(getContext(), getString(R.string.coin_not_enough));
                 }
 //                ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
 //                viewPager.setCurrentItem(0, true);
@@ -126,6 +117,15 @@ public class CoinPayFragment extends Fragment {
 
     private void setCountdownView(Integer integer) {
         countdownText.setText(String.valueOf(integer));
+        if (integer == 1 && ((MainActivity) getActivity()).getCurrentPage() == 3) {
+            ((MainActivity) getActivity()).cancelCountdown();
+            viewModel.setSelectedCars(null);
+            boolean success = viewModel.cancelCoinPay();
+            if (!success) {
+                Util.showWarningDialog(getContext(), getString(R.string.coin_not_enough));
+            }
+            ((MainActivity) getActivity()).goToPage(0, 0, 0);
+        }
     }
 
     private void setNoneEditText(View root) {
