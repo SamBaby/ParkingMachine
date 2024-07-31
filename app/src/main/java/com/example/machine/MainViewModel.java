@@ -860,7 +860,7 @@ public class MainViewModel extends ViewModel {
         Thread t = new Thread(() -> {
             try {
                 String res = ApacheServerRequest.moneySupplySearch();
-                if (!res.isEmpty()) {
+                if (res != null && !res.isEmpty()) {
                     JSONArray array = new JSONArray(res);
                     if (array.length() > 0) {
                         JSONObject obj = array.getJSONObject(0);
@@ -940,10 +940,12 @@ public class MainViewModel extends ViewModel {
     }
 
     private final MutableLiveData<Integer> countdownSeconds = new MutableLiveData<>(0);
-    public void setCountdownSeconds(int seconds){
+
+    public void setCountdownSeconds(int seconds) {
         countdownSeconds.postValue(seconds);
     }
-    public MutableLiveData<Integer> getCountdownSeconds(){
+
+    public MutableLiveData<Integer> getCountdownSeconds() {
         return countdownSeconds;
     }
 }

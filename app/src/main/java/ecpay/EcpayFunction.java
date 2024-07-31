@@ -717,7 +717,6 @@ public class EcpayFunction {
                             JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
                             String url = returnData.getString("InvoiceHtml");
                             if (!url.isEmpty()) {
-                                result.set(true);
                                 Var<Bitmap> invoicePic = new Var<>();
                                 int i = 0;
                                 Thread tPrint = new Thread(() -> {
@@ -729,37 +728,45 @@ public class EcpayFunction {
 
                                             @Override
                                             public void onNewPicture(WebView view, @Nullable Picture picture) {
-                                                if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
-                                                    view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                                                            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                                                    view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-                                                    view.setDrawingCacheEnabled(true);
-                                                    view.buildDrawingCache();
-                                                    Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-                                                    Canvas canvas = new Canvas(bitmap);
-                                                    view.draw(canvas);
-                                                    invoicePic.set(bitmap);
-                                                    view.setVisibility(View.GONE);
-                                                    print = false;
-                                                    view.destroy();
-                                                    webViewVar.set(null);
-                                                } else if (print) {
-                                                    view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                                                            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                                                    view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                try{
+                                                    if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
+                                                        view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                                                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                                                        view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                        view.setDrawingCacheEnabled(true);
+                                                        view.buildDrawingCache();
+                                                        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+                                                        Canvas canvas = new Canvas(bitmap);
+                                                        view.draw(canvas);
+                                                        invoicePic.set(bitmap);
+                                                        view.setVisibility(View.GONE);
+                                                        print = false;
+                                                        view.destroy();
+                                                        webViewVar.set(null);
+                                                    } else if (print) {
+                                                        view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                                                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                                                        view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                    }
+                                                }catch (Exception e){
+                                                    e.printStackTrace();
                                                 }
 
                                             }
                                         });
 
-                                        // 启用 JavaScript
-                                        WebSettings webSettings = webViewVar.get().getSettings();
-                                        webSettings.setJavaScriptEnabled(true);
-                                        // 加载 HTML 内容
-                                        webViewVar.get().loadUrl(url);
+                                        try{
+                                            // 启用 JavaScript
+                                            WebSettings webSettings = webViewVar.get().getSettings();
+                                            webSettings.setJavaScriptEnabled(true);
+                                            // 加载 HTML 内容
+                                            webViewVar.get().loadUrl(url);
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
                                     });
                                 });
-                                while (invoicePic.get() == null && i < 3) {
+                                while (invoicePic.get() == null && i < 10) {
                                     i++;
                                     tPrint.start();
                                     Thread.sleep(3000);
@@ -770,8 +777,7 @@ public class EcpayFunction {
                                 }
                                 if (invoicePic.get() != null) {
                                     invoiceMachinePrint(activity, connector, cxt, invoicePic.get(), enterDate, printDetail);
-                                }else{
-                                    Toast.makeText(activity, "列印發票失敗123",Toast.LENGTH_LONG).show();
+                                    result.set(true);
                                 }
                             } else {
                                 //發票網址取得失敗
