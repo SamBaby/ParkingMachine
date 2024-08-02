@@ -167,8 +167,6 @@ public class CoinPayFragment extends Fragment {
             } else {
                 timeIn.setText(String.format("%s %s", getResources().getString(R.string.entrance_time), car.getTime_in()));
             }
-
-
             timeOut.setText(String.format("%s %s", getResources().getString(R.string.exit_time), viewModel.getPayTime()));
         }
     }
@@ -184,7 +182,6 @@ public class CoinPayFragment extends Fragment {
                 } else {
                     ((MainActivity) getActivity()).resetCountdown(50, 0);
                 }
-
             }
 //            if (viewModel.isStartCoinPay() && integer >= viewModel.getTotalMoney().getValue()) {
 //                if (getActivity() != null) {

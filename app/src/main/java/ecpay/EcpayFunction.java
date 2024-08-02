@@ -61,11 +61,6 @@ import usb.UsbConnectionContext;
 import usb.UsbConnector;
 import util.Util;
 
-/**
- * �@�Ψ禡���O
- *
- * @author mark.chiu
- */
 public class EcpayFunction {
     private static final String algorithm = "AES/CBC/PKCS7Padding";
 
@@ -728,7 +723,7 @@ public class EcpayFunction {
 
                                             @Override
                                             public void onNewPicture(WebView view, @Nullable Picture picture) {
-                                                try{
+                                                try {
                                                     if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
                                                         view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                                                                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
@@ -748,31 +743,68 @@ public class EcpayFunction {
                                                                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
                                                         view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
                                                     }
-                                                }catch (Exception e){
+                                                } catch (Exception e) {
                                                     e.printStackTrace();
                                                 }
 
                                             }
                                         });
 
-                                        try{
+                                        try {
                                             // 启用 JavaScript
                                             WebSettings webSettings = webViewVar.get().getSettings();
                                             webSettings.setJavaScriptEnabled(true);
                                             // 加载 HTML 内容
                                             webViewVar.get().loadUrl(url);
-                                        }catch (Exception e){
+                                        } catch (Exception e) {
                                             e.printStackTrace();
                                         }
                                     });
                                 });
-                                while (invoicePic.get() == null && i < 10) {
+                                while (invoicePic.get() == null && i < 30) {
                                     i++;
-                                    tPrint.start();
-                                    Thread.sleep(3000);
-                                    if (webViewVar.get() != null) {
-                                        activity.runOnUiThread(()-> webViewVar.get().destroy());
+                                    try {
+                                        if (webViewVar.get() != null) {
+                                            activity.runOnUiThread(() -> {
+                                                webViewVar.get().stopLoading();
+                                                webViewVar.get().destroy();
+                                                webViewVar.set(null);
+                                            });
+                                            Thread.sleep(1000);
+                                        }
+                                    } catch (Exception e) {
                                         webViewVar.set(null);
+                                        e.printStackTrace();
+                                    }
+                                    try{
+                                        tPrint.start();
+                                        Thread.sleep(3000);
+                                        if (webViewVar.get() != null) {
+                                            activity.runOnUiThread(() -> {
+                                                try {
+                                                    if (webViewVar.get() != null) {
+                                                        webViewVar.get().destroy();
+                                                    }
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            });
+                                            webViewVar.set(null);
+                                        }
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if (webViewVar.get() != null) {
+                                    try {
+                                        if (webViewVar.get() != null) {
+                                            webViewVar.get().stopLoading();
+                                            webViewVar.get().destroy();
+                                            webViewVar.set(null);
+                                        }
+                                    } catch (Exception e) {
+                                        webViewVar.set(null);
+                                        e.printStackTrace();
                                     }
                                 }
                                 if (invoicePic.get() != null) {
@@ -890,8 +922,8 @@ public class EcpayFunction {
 
                     connector.WriteBytes(cxt, PrintCommand.blankA0, 0);
                     connector.WriteBytes(cxt, PrintCommand.cut, 0);
-                    connector.WriteBytes(cxt, PrintCommand.rollback30, 0);
-//                    connector.WriteBytes(cxt, PrintCommand.rollback60, 0);
+//                    connector.WriteBytes(cxt, PrintCommand.rollback30, 0);
+                    connector.WriteBytes(cxt, PrintCommand.rollback60, 0);
                     connector.WriteBytes(cxt, PrintCommand.rollForward05, 0);
                     connector.WriteBytes(cxt, PrintCommand.reset, 0);
                 } catch (Exception e) {

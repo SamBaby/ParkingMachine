@@ -135,42 +135,53 @@ public class CompanyIDFragment extends Fragment {
         Button button0 = view.findViewById(R.id.button_0);
         button0.setOnClickListener(v -> {
             input.setText(input.getText() + "0");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button1 = view.findViewById(R.id.button_1);
         button1.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "1");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button2 = view.findViewById(R.id.button_2);
         button2.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "2");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button3 = view.findViewById(R.id.button_3);
         button3.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "3");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button4 = view.findViewById(R.id.button_4);
         button4.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "4");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button5 = view.findViewById(R.id.button_5);
         button5.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "5");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button6 = view.findViewById(R.id.button_6);
         button6.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "6");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button7 = view.findViewById(R.id.button_7);
+        ((MainActivity) getActivity()).resetCountdown(30, 6);
         button7.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "7");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button8 = view.findViewById(R.id.button_8);
         button8.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "8");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button9 = view.findViewById(R.id.button_9);
         button9.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "9");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button buttonBack = view.findViewById(R.id.button_back);
         buttonBack.setOnClickListener(v -> {
@@ -178,10 +189,12 @@ public class CompanyIDFragment extends Fragment {
             if (!text.isEmpty()) {
                 input.setText(text.substring(0, text.length() - 1));
             }
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button buttonClear = view.findViewById(R.id.button_clear);
         buttonClear.setOnClickListener(v -> {
             input.setText("");
+            ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         buttonCarrier = view.findViewById(R.id.button_carrier);
         buttonCarrier.setOnClickListener(v -> {
@@ -294,6 +307,14 @@ public class CompanyIDFragment extends Fragment {
                 }
             }
             return null;
+        }
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            // Hide the progress bar after completing the background task
+            progressBar.setVisibility(View.GONE);
+            buttonPrint.setEnabled(true);
+            buttonCarrier.setEnabled(true);
         }
     }
 
