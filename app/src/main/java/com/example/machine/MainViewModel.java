@@ -642,7 +642,7 @@ public class MainViewModel extends ViewModel {
 
     public String getPayment() {
         String ret = "C";
-        if (payWay.getValue() == 1) {
+        if (payWay.getValue() != 0) {
             ret = "E";
         }
         return ret;

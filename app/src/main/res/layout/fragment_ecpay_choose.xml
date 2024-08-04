@@ -1,0 +1,71 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey_background"
+    tools:context="pages.ECPayChooseFragment">
+    <TextView
+        android:id="@+id/countdown_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:text="0"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+    </TextView>
+    <include
+        android:id="@+id/header"
+        layout="@layout/header" />
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="20dp"
+            android:gravity="center"
+            android:text="@string/choose_payment"
+            android:textColor="@color/yellow"
+            android:textSize="30sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="100dp"
+            android:orientation="vertical"
+            android:padding="30dp">
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_linepay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/next_page_button"
+                android:text="@string/line_pay"
+                android:textColor="@color/white"
+                android:textSize="30sp"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <include
+        android:id="@+id/footer"
+        layout="@layout/footer" />
+
+    <EditText
+        android:id="@+id/edit_none"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text=""
+        tools:ignore="MissingConstraints"></EditText>
+</androidx.constraintlayout.widget.ConstraintLayout>

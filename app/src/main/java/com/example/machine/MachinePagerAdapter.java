@@ -8,13 +8,15 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import pages.CarViewFragment;
 import pages.CarrierFragment;
 import pages.CompanyIDFragment;
+import pages.ECPayChooseFragment;
 import pages.EndingFragment;
 import pages.CoinPayFragment;
+import pages.LinePayFragment;
 import pages.PaymentChooseFragment;
 import pages.SearchFragment;
 
 public class MachinePagerAdapter extends FragmentPagerAdapter {
-    private static final int NUM_PAGES = 7;
+    private static final int NUM_PAGES = 9;
     public MachinePagerAdapter(@NonNull FragmentManager fm) {
         super(fm);
     }
@@ -37,6 +39,10 @@ public class MachinePagerAdapter extends FragmentPagerAdapter {
                 return new CarrierFragment();
             case 6:
                 return new EndingFragment();
+            case 7:
+                return new ECPayChooseFragment();
+            case 8:
+                return new LinePayFragment();
             default:
                 return null;
         }

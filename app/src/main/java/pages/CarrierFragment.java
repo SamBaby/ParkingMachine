@@ -127,12 +127,23 @@ public class CarrierFragment extends Fragment {
 
                 @Override
                 public void afterTextChanged(Editable s) {
+//                    if (s.length() > 0) {
+//
+//                        char lastCharacter = s.charAt(s.length() - 1);
+//
+//                        if (lastCharacter == '\n') {
+//                            String barcode = s.subSequence(0, s.length() - 1).toString();
+//                            barcode = barcode.replaceAll("／", "/");
+//                            editText.setText("");
+//                            new BackgroundTask(barcode).execute();
+//                        }
+//                    }
                     if (issueing) {
-                        s.clear();
+                        editText.setText("");
                         return;
                     }
-                    if (!s.toString().startsWith("／") && !s.toString().startsWith("/")) {
-                        s.clear();
+                    if (s.length() > 0 && !s.toString().startsWith("／") && !s.toString().startsWith("/")) {
+                        editText.setText("");
                         return;
                     }
                     if (!s.toString().isEmpty() && s.toString().length() == 8) {
@@ -140,7 +151,7 @@ public class CarrierFragment extends Fragment {
                         if (id.lastIndexOf("/") >= 0 && id.length() == 8) {
                             new BackgroundTask(id).execute();
                         }
-                        s.clear();
+                        editText.setText("");
                     }
                 }
             });
@@ -149,6 +160,7 @@ public class CarrierFragment extends Fragment {
     }
 
     private void setCountdownView(Integer integer) {
+        editText.requestFocus();
         countdownText.setText(String.valueOf(integer));
         if (integer == 1 && ((MainActivity) getActivity()).getCurrentPage() == 5) {
             ((MainActivity) getActivity()).cancelCountdown();
@@ -202,7 +214,7 @@ public class CarrierFragment extends Fragment {
                 viewModel.setSelectedCars(null);
                 ((MainActivity) getActivity()).goToPage(6, 0, 5);
             } else {
-                Util.showWarningDialog(getContext(), getString(R.string.carrier_id_not_found) + ":" + id);
+                getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.carrier_id_not_found)));
             }
             issueing = false;
             return null;

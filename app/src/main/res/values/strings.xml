@@ -43,6 +43,7 @@
     <string name="choose_payment">請點選繳款方式</string>
     <string name="cash">現金</string>
     <string name="card">悠遊卡</string>
+    <string name="EC_pay">電子支付</string>
     <string name="line_pay">Line Pay</string>
 
     <string name="pick_car">請點選你的車號車輛圖片</string>
@@ -51,16 +52,18 @@
     <string name="enter_car_number">請輸入車號 例如AAA-1234 即輸入1234</string>
     <string name="search">查詢</string>
 
-    <string name = "company_carrier_not_same_time">使用統編請列印發票</string>
-    <string name = "company_id_not_found">查無此統編</string>
-    <string name = "carrier_id_not_found">查無此載具</string>
-    <string name = "car_id_not_found">查無相關車號</string>
-    <string name = "coin_broken">投幣機故障，請聯絡相關人員</string>
-    <string name = "print_broken">發票機故障，請聯絡相關人員</string>
-    <string name = "car_number_over_two">請輸入至少兩位數號碼</string>
-    <string name = "coin_not_enough">硬幣不足，請聯絡相關人員</string>
+    <string name="company_carrier_not_same_time">使用統編請列印發票</string>
+    <string name="company_id_not_found">查無此統編</string>
+    <string name="carrier_id_not_found">查無此載具</string>
+    <string name="car_id_not_found">查無相關車號</string>
+    <string name="coin_broken">投幣機故障，請聯絡相關人員</string>
+    <string name="print_broken">發票機故障，請聯絡相關人員</string>
+    <string name="car_number_over_two">請輸入至少兩位數號碼</string>
+    <string name="coin_not_enough">硬幣不足，請聯絡相關人員</string>
 
     <string name="internet_error">網路異常無法列印發票，如需發票請聯絡相關人員</string>
 
-    <string name = "restart_msg">重新啟動APP…</string>
+    <string name="restart_msg">重新啟動APP…</string>
+    <string name="line_pay_instruction">請掃描Line Pay條碼</string>
+    <string name="line_pay_error">交易失敗，請重新掃描Line Pay條碼</string>
 </resources>

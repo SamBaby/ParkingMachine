@@ -4,19 +4,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/grey_background"
-    tools:context="pages.PaymentChooseFragment">
+    tools:context="pages.LinePayFragment">
+
     <TextView
         android:id="@+id/countdown_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="30sp"
         android:text="0"
         android:textColor="@color/white"
+        android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        >
+        app:layout_constraintTop_toTopOf="parent">
 
     </TextView>
+
     <include
         android:id="@+id/header"
         layout="@layout/header" />
@@ -34,7 +35,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="20dp"
             android:background="@drawable/input_rounded_corner_background"
             android:orientation="horizontal">
 
@@ -107,7 +108,7 @@
                     android:textSize="20sp" />
 
                 <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/button_cancel"
+                    android:id="@+id/cancel_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="20dp"
@@ -125,7 +126,7 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="20dp"
             android:gravity="center"
-            android:text="@string/choose_payment"
+            android:text="@string/line_pay_instruction"
             android:textColor="@color/yellow"
             android:textSize="30sp" />
 
@@ -133,44 +134,99 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="100dp"
+            android:background="@drawable/light_gery_background"
             android:orientation="vertical"
-            android:padding="30dp">
+            android:padding="20dp">
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/button_cash"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="@drawable/next_page_button"
-                android:text="@string/cash"
-                android:textColor="@color/white"
-                android:textSize="30sp" />
-            <!--            <androidx.appcompat.widget.AppCompatButton-->
-            <!--                android:id="@+id/button_ezpay"-->
-            <!--                android:layout_width="match_parent"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:background="@drawable/next_page_button"-->
-            <!--                android:text="@string/card"-->
-            <!--                android:textColor="@color/white"-->
-            <!--                android:textSize="30sp"-->
-            <!--                android:layout_gravity="center"-->
-            <!--                android:layout_marginTop="20dp"/>-->
-                        <androidx.appcompat.widget.AppCompatButton
-                            android:id="@+id/button_ecpay"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/next_page_button"
-                            android:text="@string/EC_pay"
-                            android:textColor="@color/white"
-                            android:textSize="30sp"
-                            android:layout_gravity="center"
-                            android:layout_marginTop="20dp"/>
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:gravity="center"
+                    android:text="@string/total_pay"
+                    android:textColor="@color/black"
+                    android:textSize="40sp" />
+
+                <TextView
+                    android:id="@+id/text_total"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:gravity="center"
+                    android:text=""
+                    android:textColor="@color/black"
+                    android:textSize="40sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:gravity="center"
+                    android:text="@string/should_pay"
+                    android:textColor="@color/black"
+                    android:textSize="40sp" />
+
+                <TextView
+                    android:id="@+id/text_should_pay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:gravity="center"
+                    android:text=""
+                    android:textColor="@color/black"
+                    android:textSize="40sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:gravity="center"
+                    android:text="@string/already_pay"
+                    android:textColor="@color/black"
+                    android:textSize="40sp" />
+
+                <TextView
+                    android:id="@+id/text_already_pay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:gravity="center"
+                    android:text=""
+                    android:textColor="@color/black"
+                    android:textSize="40sp" />
+            </LinearLayout>
+
+
         </LinearLayout>
     </LinearLayout>
 
     <include
         android:id="@+id/footer"
         layout="@layout/footer" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
 
     <EditText
         android:id="@+id/edit_none"

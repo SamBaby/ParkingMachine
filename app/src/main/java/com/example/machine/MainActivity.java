@@ -1,16 +1,11 @@
 package com.example.machine;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.widget.TextView;
+import android.view.KeyEvent;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,28 +18,15 @@ import androidx.viewpager.widget.ViewPager;
 import com.android.machine.R;
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.FT_Device;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.TimerTask;
-import java.util.Vector;
-
-import datamodel.CarInside;
-import datamodel.CouponSetting;
-import datamodel.MoneyRefund;
-import ecpay.EcpayFunction;
 import event.Var;
 import usb.UsbConnectionContext;
 import usb.UsbConnector;
 import util.ApacheServerRequest;
 import util.CustomExceptionHandler;
-import util.Util;
 
 public class MainActivity extends AppCompatActivity {
     private MainViewModel model;
@@ -63,9 +45,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         // 设置自定义的UncaughtExceptionHandler
-        Thread.setDefaultUncaughtExceptionHandler(
-                new CustomExceptionHandler(this, MainActivity.class)
-        );
+        Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler(this, MainActivity.class));
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());

@@ -116,7 +116,8 @@ public class PaymentChooseFragment extends Fragment {
 
             Button btnCash = root.findViewById(R.id.button_cash);
 //            Button btnEZPay = root.findViewById(R.id.button_ezpay);
-//            Button btnLinePay = root.findViewById(R.id.button_linepay);
+            Button btnECPay = root.findViewById(R.id.button_ecpay);
+            //pay with cash button
             btnCash.setOnClickListener(v -> {
                 if (viewModel.getCoin10Device() == null || viewModel.getCoin50Device() == null
                         || viewModel.getCoinInputDevice() == null || viewModel.getPaperInputDevice() == null) {
@@ -132,10 +133,12 @@ public class PaymentChooseFragment extends Fragment {
 //                viewModel.setPayWay(1);
 //                viewPager.setCurrentItem(3, true);
 //            });
-//            btnLinePay.setOnClickListener(v -> {
-//                viewModel.setPayWay(2);
-//                viewPager.setCurrentItem(3, true);
-//            });
+            //pay with EC-pay button
+            btnECPay.setOnClickListener(v -> {
+                viewModel.setPayWay(2);
+//                viewPager.setCurrentItem(7, false);
+                ((MainActivity) getActivity()).goToPage(7, 0, 50);
+            });
         }
         setNoneEditText(root);
         return root;

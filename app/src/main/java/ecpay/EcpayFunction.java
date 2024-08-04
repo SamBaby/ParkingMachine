@@ -482,6 +482,7 @@ public class EcpayFunction {
         }
     }
 
+    //invoice issuing function
     public static String invoiceIssue(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String companyID, String carrierID, int amount, String key, String IV, String enterDate) {
         Var<String> invoiceNo = new Var<>("");
         Var<String> invoiceDate = new Var<>("");
@@ -540,9 +541,9 @@ public class EcpayFunction {
                 String res = EcpayFunction.httpPost(getECPayUrl(test) + "/B2CInvoice/Issue", jsonText, "UTF-8");
                 if (res != null) {
                     JSONObject ret = new JSONObject(res);
-                    if (!ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
+                    if (ret.has("Data") && !ret.getString("Data").isEmpty() && !ret.getString("Data").equals("null")) {
                         JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
-                        if (returnData.getInt("RtnCode") == 1) {
+                        if ((returnData.has("RtnCode") && returnData.getInt("RtnCode") == 1) || (returnData.has("RQnCode") && returnData.getInt("RQnCode") == 1)) {
                             invoiceNo.set(returnData.getString("InvoiceNo"));
                             invoiceDate.set(returnData.getString("InvoiceDate").split(" ")[0]);
                             if (carrierID.isEmpty()) {
@@ -682,6 +683,7 @@ public class EcpayFunction {
         return billNumber.get();
     }
 
+    //invoice printing function
     public static boolean invoicePrint(boolean test, Activity activity, UsbConnector connector, UsbConnectionContext cxt, String merchantID, String algorithm, String key, String IV, String invoiceNumber, String date, String enterDate, boolean printDetail) {
         Var<Boolean> result = new Var<>(false);
         Var<WebView> webViewVar = new Var<>();
@@ -710,109 +712,111 @@ public class EcpayFunction {
                         if (res != null) {
                             JSONObject ret = new JSONObject(res);
                             JSONObject returnData = new JSONObject(EcpayFunction.ECPayDecrypt(ret.getString("Data"), algorithm, key, IV));
-                            String url = returnData.getString("InvoiceHtml");
-                            if (!url.isEmpty()) {
-                                Var<Bitmap> invoicePic = new Var<>();
-                                int i = 0;
-                                Thread tPrint = new Thread(() -> {
-                                    activity.runOnUiThread(() -> {
-                                        webViewVar.set(new WebView(activity));
+                            if (returnData.has("InvoiceHtml")) {
+                                String url = returnData.getString("InvoiceHtml");
+                                if (!url.isEmpty()) {
+                                    Var<Bitmap> invoicePic = new Var<>();
+                                    int i = 0;
+                                    Thread tPrint = new Thread(() -> {
+                                        activity.runOnUiThread(() -> {
+                                            webViewVar.set(new WebView(activity));
 
-                                        webViewVar.get().setPictureListener(new WebView.PictureListener() {
-                                            boolean print = true;
+                                            webViewVar.get().setPictureListener(new WebView.PictureListener() {
+                                                boolean print = true;
 
-                                            @Override
-                                            public void onNewPicture(WebView view, @Nullable Picture picture) {
-                                                try {
-                                                    if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
-                                                        view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                                                                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                                                        view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-                                                        view.setDrawingCacheEnabled(true);
-                                                        view.buildDrawingCache();
-                                                        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-                                                        Canvas canvas = new Canvas(bitmap);
-                                                        view.draw(canvas);
-                                                        invoicePic.set(bitmap);
-                                                        view.setVisibility(View.GONE);
-                                                        print = false;
-                                                        view.destroy();
-                                                        webViewVar.set(null);
-                                                    } else if (print) {
-                                                        view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                                                                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                                                        view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                @Override
+                                                public void onNewPicture(WebView view, @Nullable Picture picture) {
+                                                    try {
+                                                        if (print && view.getHeight() > 0 && view.getWidth() >= 100) {
+                                                            view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                                                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                                                            view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                            view.setDrawingCacheEnabled(true);
+                                                            view.buildDrawingCache();
+                                                            Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+                                                            Canvas canvas = new Canvas(bitmap);
+                                                            view.draw(canvas);
+                                                            invoicePic.set(bitmap);
+                                                            view.setVisibility(View.GONE);
+                                                            print = false;
+                                                            view.destroy();
+                                                            webViewVar.set(null);
+                                                        } else if (print) {
+                                                            view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                                                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                                                            view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+                                                        }
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
                                                     }
-                                                } catch (Exception e) {
-                                                    e.printStackTrace();
-                                                }
 
+                                                }
+                                            });
+
+                                            try {
+                                                // 启用 JavaScript
+                                                WebSettings webSettings = webViewVar.get().getSettings();
+                                                webSettings.setJavaScriptEnabled(true);
+                                                // 加载 HTML 内容
+                                                webViewVar.get().loadUrl(url);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
                                             }
                                         });
-
+                                    });
+                                    while (invoicePic.get() == null && i < 30) {
+                                        i++;
                                         try {
-                                            // 启用 JavaScript
-                                            WebSettings webSettings = webViewVar.get().getSettings();
-                                            webSettings.setJavaScriptEnabled(true);
-                                            // 加载 HTML 内容
-                                            webViewVar.get().loadUrl(url);
+                                            if (webViewVar.get() != null) {
+                                                activity.runOnUiThread(() -> {
+                                                    webViewVar.get().stopLoading();
+                                                    webViewVar.get().destroy();
+                                                    webViewVar.set(null);
+                                                });
+                                                Thread.sleep(1000);
+                                            }
+                                        } catch (Exception e) {
+                                            webViewVar.set(null);
+                                            e.printStackTrace();
+                                        }
+                                        try {
+                                            tPrint.start();
+                                            Thread.sleep(3000);
+                                            if (webViewVar.get() != null) {
+                                                activity.runOnUiThread(() -> {
+                                                    try {
+                                                        if (webViewVar.get() != null) {
+                                                            webViewVar.get().destroy();
+                                                        }
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                });
+                                                webViewVar.set(null);
+                                            }
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
-                                    });
-                                });
-                                while (invoicePic.get() == null && i < 30) {
-                                    i++;
-                                    try {
-                                        if (webViewVar.get() != null) {
-                                            activity.runOnUiThread(() -> {
+                                    }
+                                    if (webViewVar.get() != null) {
+                                        try {
+                                            if (webViewVar.get() != null) {
                                                 webViewVar.get().stopLoading();
                                                 webViewVar.get().destroy();
                                                 webViewVar.set(null);
-                                            });
-                                            Thread.sleep(1000);
-                                        }
-                                    } catch (Exception e) {
-                                        webViewVar.set(null);
-                                        e.printStackTrace();
-                                    }
-                                    try{
-                                        tPrint.start();
-                                        Thread.sleep(3000);
-                                        if (webViewVar.get() != null) {
-                                            activity.runOnUiThread(() -> {
-                                                try {
-                                                    if (webViewVar.get() != null) {
-                                                        webViewVar.get().destroy();
-                                                    }
-                                                } catch (Exception e) {
-                                                    e.printStackTrace();
-                                                }
-                                            });
+                                            }
+                                        } catch (Exception e) {
                                             webViewVar.set(null);
+                                            e.printStackTrace();
                                         }
-                                    }catch (Exception e){
-                                        e.printStackTrace();
                                     }
-                                }
-                                if (webViewVar.get() != null) {
-                                    try {
-                                        if (webViewVar.get() != null) {
-                                            webViewVar.get().stopLoading();
-                                            webViewVar.get().destroy();
-                                            webViewVar.set(null);
-                                        }
-                                    } catch (Exception e) {
-                                        webViewVar.set(null);
-                                        e.printStackTrace();
+                                    if (invoicePic.get() != null) {
+                                        invoiceMachinePrint(activity, connector, cxt, invoicePic.get(), enterDate, printDetail);
+                                        result.set(true);
                                     }
+                                } else {
+                                    //發票網址取得失敗
                                 }
-                                if (invoicePic.get() != null) {
-                                    invoiceMachinePrint(activity, connector, cxt, invoicePic.get(), enterDate, printDetail);
-                                    result.set(true);
-                                }
-                            } else {
-                                //發票網址取得失敗
                             }
 
                         } else {
@@ -839,6 +843,7 @@ public class EcpayFunction {
         return result.get();
     }
 
+    //print title bmp
     public static void invoiceTitlePrint(Activity activity, UsbConnector connector, UsbConnectionContext cxt) {
         String base64 = Util.getEnvoiceTitleBase64();
         byte[] decodedBytes = android.util.Base64.decode(base64, 0);
@@ -1031,6 +1036,7 @@ public class EcpayFunction {
         }
     }
 
+    //check company ID
     public static boolean taxIDCheck(boolean test, String merchantID, String key, String IV, String taxID) {
         Var<Boolean> ret = new Var<>(false);
         Thread t = new Thread(() -> {
@@ -1070,6 +1076,7 @@ public class EcpayFunction {
         return ret.get();
     }
 
+    //check carrier ID
     public static boolean barcodeCheck(boolean test, String merchantID, String key, String IV, String barcode) {
         Var<Boolean> ret = new Var<>(false);
         Thread t = new Thread(() -> {

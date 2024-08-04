@@ -111,6 +111,7 @@ public class SearchFragment extends Fragment {
             String number = input.getText().toString();
             if (!number.isEmpty() && number.length() >= 2) {
                 Thread t = new Thread(() -> {
+                    //get all cars inside the lot
                     String req = ApacheServerRequest.getCarInside(number);
                     if (req != null && !req.isEmpty()) {
                         try {
@@ -120,10 +121,12 @@ public class SearchFragment extends Fragment {
                                 JSONObject obj = array.getJSONObject(i);
                                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                                 CarInside car = gson.fromJson(obj.toString(), CarInside.class);
+                                //check the car is not paid and is a regular car
                                 if (checkShouldPay(car) && !isRegularCar(car.getCar_number())) {
                                     cars.add(car);
                                 }
                             }
+                            //if cars list is not empty, go to selecting page
                             if (!cars.isEmpty()) {
                                 found.set(true);
                                 ViewPager viewPager = getActivity().findViewById(R.id.view_pager);
@@ -177,6 +180,11 @@ public class SearchFragment extends Fragment {
         });
     }
 
+    /***
+     * check the car owner should pay or not
+     * @param car
+     * @return
+     */
     private boolean checkShouldPay(CarInside car) {
         if (car.getTime_pay() == null || car.getTime_pay().isEmpty()) {
             return true;
@@ -224,6 +232,11 @@ public class SearchFragment extends Fragment {
         return basicFee.get();
     }
 
+    /***
+     * initial number buttons
+     * @param view
+     * @param input
+     */
     private void initButtons(View view, TextView input) {
         Button button0 = view.findViewById(R.id.button_0);
         button0.setOnClickListener(v -> {
@@ -278,6 +291,11 @@ public class SearchFragment extends Fragment {
         });
     }
 
+    /***
+     * check if a car is regular
+     * @param carNumber car number
+     * @return result of a car is regular one
+     */
     private boolean isRegularCar(String carNumber) {
         Var<Boolean> ret = new Var<>(false);
         Thread t = new Thread(() -> {
