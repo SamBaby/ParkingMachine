@@ -11,7 +11,7 @@ import datamodel.BasicSetting;
 import datamodel.DayHoliday;
 
 public class ApacheServerRequest {
-    public static final String url = "http://192.168.0.252:8080/function.php/";
+    public static final String url = "http://192.168.1.200:8080/function.php/";
 
     public static String getUsers() {
         return HTTPGetRequest.get(url, "func=user_search");
@@ -285,8 +285,16 @@ public class ApacheServerRequest {
                 carNumber));
     }
 
-    public static String getServerTime(){
+    public static String getServerTime() {
         return HTTPGetRequest.get(url, "func=get_server_time");
     }
 
+    public static String getLinePay() {
+        return HTTPGetRequest.get(url, "func=line_pay_search");
+    }
+
+    public static String updateLinePay(String ChannelId, String ChannelSecret, int test) {
+        return HTTPGetRequest.get(url, String.format("func=line_pay_update&ChannelId=%s&ChannelSecret=%s&test=%d",
+                ChannelId, ChannelSecret, test));
+    }
 }

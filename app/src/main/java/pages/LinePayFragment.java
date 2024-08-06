@@ -22,7 +22,10 @@ import android.widget.TextView;
 import com.android.machine.R;
 import com.example.machine.MainActivity;
 import com.example.machine.MainViewModel;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -33,6 +36,7 @@ import java.net.URL;
 import java.util.Map;
 
 import datamodel.CarInside;
+import datamodel.LinePay;
 import ecpay.EcpayFunction;
 import event.Var;
 import util.ApacheServerRequest;
@@ -122,7 +126,9 @@ public class LinePayFragment extends Fragment {
         txt.requestFocus();
         countdownText.setText(String.valueOf(integer));
     }
+
     EditText txt;
+
     private void setNoneEditText(View root) {
         txt = root.findViewById(R.id.edit_none);
         txt.addTextChangedListener(new TextWatcher() {
@@ -263,6 +269,7 @@ public class LinePayFragment extends Fragment {
             // Perform the background task here
             // For example, a long-running operation like downloading data or heavy computation
             // Simulating a long-running task with Thread.sleep()
+            ((MainActivity) getActivity()).cancelCountdown();
             boolean success = false;
             Var<String> postRet = new Var<>("");
             Thread t = new Thread(() -> {
@@ -321,46 +328,78 @@ public class LinePayFragment extends Fragment {
      */
     public static synchronized String linePayPost(int amount, String oneTimeID) {
         try {
-            //line Pay API url
-            //official:https://api-pay.line.me/v2/payments/oneTimeKeys/pay
-            //test: https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay
-            URL urlPass = new URL("https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay");
+            LinePay data = getLinePayData();
+            if (data != null) {
+                //line Pay API url
+                //official:https://api-pay.line.me/v2/payments/oneTimeKeys/pay
+                //test: https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay
+                String url = data.getTest() == 1 ? "https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay" : "https://api-pay.line.me/v2/payments/oneTimeKeys/pay";
+                URL urlPass = new URL(url);
 
-            // Create connection
-            HttpURLConnection conn = (HttpURLConnection) urlPass.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("X-LINE-ChannelId", "2005978722");
-            conn.setRequestProperty("X-LINE-ChannelSecret", "be633699f874267a584d14d1c9e1bf16");
-            conn.setDoOutput(true);
-            String content = "{\"productName\": \"停車費\",\n" +
-                    "          \"amount\": " + amount + ",\n" +
-                    "          \"currency\": \"TWD\",\n" +
-                    "          \"orderId\": \"" + EcpayFunction.genUnixTimeStamp() + "\",\n" +
-                    "          \"oneTimeKey\": \"" + oneTimeID + "\"}";
-            // Write parameters to output stream
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] postDataBytes = content.getBytes("UTF-8");
-                os.write(postDataBytes);
-            }
+                // Create connection
+                HttpURLConnection conn = (HttpURLConnection) urlPass.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setRequestProperty("X-LINE-ChannelId", data.getChannelId());
+                conn.setRequestProperty("X-LINE-ChannelSecret", data.getChannelSecret());
+                conn.setDoOutput(true);
+                String content = "{\"productName\": \"停車費\",\n" +
+                        "          \"amount\": " + amount + ",\n" +
+                        "          \"currency\": \"TWD\",\n" +
+                        "          \"orderId\": \"" + EcpayFunction.genUnixTimeStamp() + "\",\n" +
+                        "          \"oneTimeKey\": \"" + oneTimeID + "\"}";
+                // Write parameters to output stream
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] postDataBytes = content.getBytes("UTF-8");
+                    os.write(postDataBytes);
+                }
 
-            int responseCode = conn.getResponseCode();
-            // Read response
-            // TODO: Handle response here
-            // 读取响应内容
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
+                int responseCode = conn.getResponseCode();
+                // Read response
+                // TODO: Handle response here
+                // 读取响应内容
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+                // Close connection
+                conn.disconnect();
+                return response.toString();
             }
-            reader.close();
-            // Close connection
-            conn.disconnect();
-            return response.toString();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return "";
+    }
+
+    private static LinePay getLinePayData() {
+        Var<LinePay> linePayData = new Var<>();
+        Thread t = new Thread(() -> {
+            try {
+                String json = ApacheServerRequest.getLinePay();
+                JSONArray array = new JSONArray(json);
+                if (array.length() > 0) {
+                    for (int i = 0; i < 1; i++) {
+                        JSONObject obj = array.getJSONObject(i);
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        LinePay linePay = gson.fromJson(obj.toString(), LinePay.class);
+                        linePayData.set(linePay);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            t.start();
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return linePayData.get();
     }
 }
