@@ -889,6 +889,10 @@ public class EcpayFunction {
         // 缩放 Bitmap
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(invoicePic, targetWidth, targetHeight, false);
         if (cxt != null) {
+            connector.WriteBytes(cxt, new byte[]{0x1B, 0x6A, (byte) 0xFF}, 0);
+            connector.WriteBytes(cxt, new byte[]{0x1B, 0x6A, 0x40}, 0);
+            connector.WriteBytes(cxt, PrintCommand.rollback60, 0);
+            connector.WriteBytes(cxt, PrintCommand.rollForward05, 0);
             invoiceTitlePrint(activity, connector, cxt);
             activity.runOnUiThread(() -> {
                 try {
@@ -927,9 +931,9 @@ public class EcpayFunction {
 
                     connector.WriteBytes(cxt, PrintCommand.blankA0, 0);
                     connector.WriteBytes(cxt, PrintCommand.cut, 0);
+                    connector.WriteBytes(cxt, new byte[]{0x1B, 0x4A, (byte) 0xFF}, 0);
+                    connector.WriteBytes(cxt, new byte[]{0x1B, 0x4A, 0x40}, 0);
 //                    connector.WriteBytes(cxt, PrintCommand.rollback30, 0);
-                    connector.WriteBytes(cxt, PrintCommand.rollback60, 0);
-                    connector.WriteBytes(cxt, PrintCommand.rollForward05, 0);
                     connector.WriteBytes(cxt, PrintCommand.reset, 0);
                 } catch (Exception e) {
                     e.printStackTrace();

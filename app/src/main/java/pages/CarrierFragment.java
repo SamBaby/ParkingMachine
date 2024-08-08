@@ -138,7 +138,7 @@ public class CarrierFragment extends Fragment {
 //                            new BackgroundTask(barcode).execute();
 //                        }
 //                    }
-                    if (issueing) {
+                    if (issuing) {
                         editText.setText("");
                         return;
                     }
@@ -173,7 +173,7 @@ public class CarrierFragment extends Fragment {
         return EcpayFunction.barcodeCheck(data.getTest() == 1, data.getMerchantID(), data.getHashKey(), data.getHashIV(), id);
     }
 
-    private boolean issueing = false;
+    private boolean issuing = false;
 
     private class BackgroundTask extends AsyncTask<Void, Void, Void> {
         private String id;
@@ -194,7 +194,7 @@ public class CarrierFragment extends Fragment {
             // Perform the background task here
             // For example, a long-running operation like downloading data or heavy computation
             // Simulating a long-running task with Thread.sleep()
-            issueing = true;
+            issuing = true;
             Boolean check = checkCarrierId(id);
             if (check) {
                 ECPayData data = Util.getECPayData();
@@ -216,7 +216,7 @@ public class CarrierFragment extends Fragment {
             } else {
                 getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.carrier_id_not_found)));
             }
-            issueing = false;
+            issuing = false;
             return null;
         }
 

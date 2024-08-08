@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -128,6 +129,7 @@ public class LinePayFragment extends Fragment {
     }
 
     EditText txt;
+    private boolean issuing = false;
 
     private void setNoneEditText(View root) {
         txt = root.findViewById(R.id.edit_none);
@@ -149,7 +151,9 @@ public class LinePayFragment extends Fragment {
                     if (lastCharacter == '\n') {
                         String barcode = s.subSequence(0, s.length() - 1).toString();
                         txt.setText("");
-                        new BackgroundTask(barcode).execute();
+                        if (!issuing) {
+                            new BackgroundTask(barcode).execute();
+                        }
                     }
                 }
             }
@@ -269,6 +273,7 @@ public class LinePayFragment extends Fragment {
             // Perform the background task here
             // For example, a long-running operation like downloading data or heavy computation
             // Simulating a long-running task with Thread.sleep()
+            issuing = true;
             ((MainActivity) getActivity()).cancelCountdown();
             boolean success = false;
             Var<String> postRet = new Var<>("");
@@ -303,6 +308,7 @@ public class LinePayFragment extends Fragment {
                 ((MainActivity) getActivity()).resetCountdown(50, 0);
                 getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.line_pay_error)));
             }
+            issuing = false;
             return null;
         }
 
