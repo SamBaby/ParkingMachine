@@ -279,14 +279,14 @@ public class LinePayFragment extends Fragment {
             Var<String> postRet = new Var<>("");
             Thread t = new Thread(() -> {
                 int index = 0;
-                while (index < 3 && postRet.get().isEmpty()) {
+                while (index < 30 && postRet.get().isEmpty()) {
                     String ret = linePayPost(1, barCode);
                     if (!ret.isEmpty()) {
                         postRet.set(ret);
                         break;
                     }
                     try {
-                        Thread.sleep(3000);
+                        Thread.sleep(1000);
                     }catch (Exception e){
                         e.printStackTrace();
                     }
