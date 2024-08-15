@@ -271,8 +271,8 @@ public class MainActivity extends AppCompatActivity {
     public void resetCountdown(int seconds, int nextNumber) {
         if (countdownRunnable != null) {
             countdownHandler.removeCallbacks(countdownRunnable);
-            startCountdown(seconds, nextNumber);
         }
+        startCountdown(seconds, nextNumber);
     }
 
     public void cancelCountdown() {

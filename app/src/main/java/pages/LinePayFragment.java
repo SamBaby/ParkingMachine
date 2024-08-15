@@ -278,9 +278,19 @@ public class LinePayFragment extends Fragment {
             boolean success = false;
             Var<String> postRet = new Var<>("");
             Thread t = new Thread(() -> {
-                String ret = linePayPost(viewModel.getShouldPayMoney().getValue(), barCode);
-                if (!ret.isEmpty()) {
-                    postRet.set(ret);
+                int index = 0;
+                while (index < 3 && postRet.get().isEmpty()) {
+                    String ret = linePayPost(1, barCode);
+                    if (!ret.isEmpty()) {
+                        postRet.set(ret);
+                        break;
+                    }
+                    try {
+                        Thread.sleep(3000);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    index++;
                 }
             });
             try {
@@ -305,8 +315,10 @@ public class LinePayFragment extends Fragment {
             if (success) {
                 ((MainActivity) getActivity()).goToPage(4, 0, 30);
             } else {
-                ((MainActivity) getActivity()).resetCountdown(50, 0);
-                getActivity().runOnUiThread(() -> Util.showWarningDialog(getContext(), getString(R.string.line_pay_error)));
+                getActivity().runOnUiThread(() -> {
+                    Util.showWarningDialog(getContext(), getString(R.string.line_pay_error));
+                    ((MainActivity) getActivity()).resetCountdown(50, 0);
+                });
             }
             issuing = false;
             return null;
