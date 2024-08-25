@@ -33,8 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private D2xxManager coinInputManager;
     private FT_Device coinInputDevice;
     private FT_Device paperInputDevice;
-    private FT_Device coin50Device;
-    private FT_Device coin10Device;
+    private FT_Device coinDevice;
     private UsbConnector printConnector;
     private UsbConnectionContext printCxt;
     private ViewPager viewPager;
@@ -134,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleFT4232H(D2xxManager manager) {
-        if (model.getCoinInputDevice() == null || model.getPaperInputDevice() == null || model.getCoin10Device() == null || model.getCoin50Device() == null) {
+        if (model.getCoinInputDevice() == null || model.getPaperInputDevice() == null || model.getCoinDevice() == null) {
             int devCount = 0;
             manager.setVIDPID(1027, 24593);
             devCount = manager.createDeviceInfoList(this);
@@ -148,32 +147,25 @@ public class MainActivity extends AppCompatActivity {
                     if (model.getPaperInputDevice() == null) {
                         paperInputDevice = manager.openByIndex(this, 1);
                     }
-                    if (model.getCoin10Device() == null) {
-                        coin10Device = manager.openByIndex(this, 2);
-                    }
-                    if (model.getCoin50Device() == null) {
-                        coin50Device = manager.openByIndex(this, 3);
+                    if (model.getCoinDevice() == null) {
+                        coinDevice = manager.openByIndex(this, 2);
                     }
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if (coinInputDevice != null && paperInputDevice != null && coin10Device != null && coin50Device != null) {
+                if (coinInputDevice != null && paperInputDevice != null && coinDevice != null) {
                     System.out.println("success FTDI");
                     setCoinMachineConfig(coinInputDevice);
 
                     setPaperMachineConfig(paperInputDevice);
 
-                    setPaperMachineConfig(coin10Device);
-                    initRefund(coin10Device);
-
-                    setPaperMachineConfig(coin50Device);
-                    initRefund(coin50Device);
+                    setPaperMachineConfig(coinDevice);
+                    initRefund(coinDevice);
 
                     model.setCoinInputDevice(coinInputDevice);
                     model.setPaperInputDevice(paperInputDevice);
-                    model.setCoin10Device(coin10Device);
-                    model.setCoin50Device(coin50Device);
+                    model.setCoinDevice(coinDevice);
                 } else {
                     System.out.println("fail FTDI");
                     if (coinInputDevice == null) {
@@ -182,11 +174,8 @@ public class MainActivity extends AppCompatActivity {
                     if (paperInputDevice == null) {
                         System.out.println("paper fail");
                     }
-                    if (coin10Device == null) {
-                        System.out.println("10 fail");
-                    }
-                    if (coin50Device == null) {
-                        System.out.println("50 fail");
+                    if (coinDevice == null) {
+                        System.out.println("refund fail");
                     }
                 }
             }
@@ -206,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initRefund(FT_Device ftDev) {
-        ftDev.write(new byte[]{(byte) 0x80});
+//        ftDev.write(new byte[]{(byte) 0x80});
     }
 
     @Override
@@ -241,11 +230,8 @@ public class MainActivity extends AppCompatActivity {
         if (paperInputDevice != null) {
             paperInputDevice.close();
         }
-        if (coin10Device != null) {
-            coin10Device.close();
-        }
-        if (coin50Device != null) {
-            coin50Device.close();
+        if (coinDevice != null) {
+            coinDevice.close();
         }
         if (printConnector != null && printCxt != null) {
             System.out.println("disconnect print machine");

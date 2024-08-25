@@ -119,7 +119,7 @@ public class PaymentChooseFragment extends Fragment {
             Button btnECPay = root.findViewById(R.id.button_ecpay);
             //pay with cash button
             btnCash.setOnClickListener(v -> {
-                if (viewModel.getCoin10Device() == null || viewModel.getCoin50Device() == null
+                if (viewModel.getCoinDevice() == null
                         || viewModel.getCoinInputDevice() == null || viewModel.getPaperInputDevice() == null) {
                     viewModel.setSelectedCars(null);
                     Util.showWarningDialog(getContext(), getString(R.string.coin_broken));

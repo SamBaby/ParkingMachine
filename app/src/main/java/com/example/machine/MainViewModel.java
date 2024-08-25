@@ -43,8 +43,7 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<Integer> exitCountTime = new MutableLiveData<>(15);
     private FT_Device coinInputDevice;
     private FT_Device paperInputDevice;
-    private FT_Device coin10Device;
-    private FT_Device coin50Device;
+    private FT_Device coinDevice;
     private final MutableLiveData<Integer> totalPay = new MutableLiveData<>(0);
     private final MutableLiveData<android.os.Handler> changePageHandler = new MutableLiveData<>(new android.os.Handler());
     private final MutableLiveData<Runnable> changePageRunnable = new MutableLiveData<>();
@@ -149,12 +148,8 @@ public class MainViewModel extends ViewModel {
     }
 
 
-    public FT_Device getCoin10Device() {
-        return coin10Device;
-    }
-
-    public FT_Device getCoin50Device() {
-        return coin50Device;
+    public FT_Device getCoinDevice() {
+        return coinDevice;
     }
 
     public void setCoinInputDevice(FT_Device device) {
@@ -169,14 +164,9 @@ public class MainViewModel extends ViewModel {
         setPaperDisable();
     }
 
-    public void setCoin10Device(FT_Device device) {
-        this.coin10Device = device;
-        read10Input();
-    }
-
-    public void setCoin50Device(FT_Device device) {
-        this.coin50Device = device;
-        read50Input();
+    public void setCoinDevice(FT_Device device) {
+        this.coinDevice = device;
+        readCoinDeviceInput();
     }
 
     private boolean readCoinInput = false;
@@ -221,45 +211,34 @@ public class MainViewModel extends ViewModel {
         if (totalPay.getValue() > 0) {
             int fifty = totalPay.getValue() / 50;
             int ten = totalPay.getValue() % 50 / 10;
+            int five = totalPay.getValue() % 10 / 5;
             MoneyCount moneyCount = getMoneyCount();
-            if (moneyCount != null && (moneyCount.getFifty() + fiftyPay >= fifty) && (moneyCount.getTen() + tenPay >= ten)) {
+            if (moneyCount != null && (moneyCount.getFifty() + fiftyPay >= fifty) && (moneyCount.getTen() + tenPay >= ten) && (moneyCount.getFive() + fivePay >= ten)) {
                 fiftyPay -= fifty;
                 while (fifty > 0) {
                     if (fifty >= 10) {
+                        refundCoins(50, 10);
                         fifty -= 10;
-                        refund50Coin10();
-                    } else if (fifty >= 5) {
-                        fifty -= 5;
-                        refund50Coin5();
-                    } else if (fifty >= 2) {
-                        fifty -= 2;
-                        refund50Coin2();
                     } else {
-                        fifty -= 1;
-                        refund50Coin1();
+                        refundCoins(50, fifty);
+                        fifty = 0;
                     }
                 }
 
                 tenPay -= ten;
                 while (ten > 0) {
-                    if (ten >= 10) {
-                        ten -= 10;
-                        refund10Coin10();
-                    } else if (ten >= 5) {
-                        ten -= 5;
-                        refund10Coin5();
-                    } else if (ten >= 2) {
-                        ten -= 2;
-                        refund10Coin2();
-                    } else {
-                        ten -= 1;
-                        refund10Coin1();
-                    }
+                    refundCoins(10, ten);
+                    ten = 0;
+                }
+                fivePay -= five;
+                while (five > 0) {
+                    refundCoins(5, five);
+                    five = 0;
                 }
             } else {
                 ret = false;
             }
-            if (fivePay != 0 || tenPay != 0 || fiftyPay != 0 || hundredPay != 0) {
+            if (ret) {
                 Thread t = new Thread(() -> {
                     ApacheServerRequest.moneyCountUpdate(
                             moneyCount.getFive() + fivePay, moneyCount.getTen() + tenPay, moneyCount.getFifty() + fiftyPay, moneyCount.getHundred() + hundredPay);
@@ -285,39 +264,29 @@ public class MainViewModel extends ViewModel {
             fiftyPay -= fifty;
             while (fifty > 0) {
                 if (fifty >= 10) {
+                    refundCoins(50, 10);
                     fifty -= 10;
-                    refund50Coin10();
-                } else if (fifty >= 5) {
-                    fifty -= 5;
-                    refund50Coin5();
-                } else if (fifty >= 2) {
-                    fifty -= 2;
-                    refund50Coin2();
                 } else {
-                    fifty -= 1;
-                    refund50Coin1();
+                    refundCoins(50, fifty);
+                    fifty = 0;
+
                 }
             }
             int ten = refund % 50 / 10;
             tenPay -= ten;
             while (ten > 0) {
-                if (ten >= 10) {
-                    ten -= 10;
-                    refund10Coin10();
-                } else if (ten >= 5) {
-                    ten -= 5;
-                    refund10Coin5();
-                } else if (ten >= 2) {
-                    ten -= 2;
-                    refund10Coin2();
-                } else {
-                    ten -= 1;
-                    refund10Coin1();
-                }
+                refundCoins(10, ten);
+                ten = 0;
+            }
+            int five = refund % 10 / 5;
+            fivePay -= five;
+            while (five > 0) {
+                refundCoins(5, five);
+                five = 0;
             }
         }
         MoneyCount moneyCount = getMoneyCount();
-        if (moneyCount != null && (fivePay != 0 || tenPay != 0 || fiftyPay != 0 || hundredPay != 0)) {
+        if (moneyCount != null) {
             Thread t = new Thread(() -> {
                 ApacheServerRequest.moneyCountUpdate(
                         moneyCount.getFive() + fivePay, moneyCount.getTen() + tenPay, moneyCount.getFifty() + fiftyPay, moneyCount.getHundred() + hundredPay);
@@ -458,7 +427,7 @@ public class MainViewModel extends ViewModel {
     }
 
 
-    private void read10Input() {
+    private void readCoinDeviceInput() {
         new Thread(() -> {
             while (true) {
                 try {
@@ -466,38 +435,10 @@ public class MainViewModel extends ViewModel {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                int len = coin10Device.getQueueStatus();
+                int len = coinDevice.getQueueStatus();
                 if (len > 0) {
-                    byte[] data = new byte[1];
-                    coin10Device.read(data, 1);
-                    if (Arrays.equals(data, new byte[]{0x02})) {
-                        coin10Device.write(new byte[]{0x10});
-                    } else {
-                        coin10Device.write(new byte[]{0x11});
-                    }
-                }
-
-            }
-        }).start();
-    }
-
-    private void read50Input() {
-        new Thread(() -> {
-            while (!cleared) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                int len = coin50Device.getQueueStatus();
-                if (len > 0) {
-                    byte[] data = new byte[1];
-                    coin50Device.read(data, 1);
-                    if (Arrays.equals(data, new byte[]{0x02})) {
-                        coin50Device.write(new byte[]{0x10});
-                    } else {
-                        coin50Device.write(new byte[]{0x11});
-                    }
+                    byte[] data = new byte[8];
+                    coinDevice.read(data, 8);
                 }
 
             }
@@ -511,7 +452,9 @@ public class MainViewModel extends ViewModel {
     public void resetTotalPay() {
         totalPay.postValue(0);
     }
-
+    public void setTotalPay(int pay) {
+        totalPay.postValue(pay);
+    }
     public MutableLiveData<android.os.Handler> getChangePageHandler() {
         return changePageHandler;
     }
@@ -539,100 +482,19 @@ public class MainViewModel extends ViewModel {
     /***
      * 十元退幣1個
      */
-    public void refund10Coin1() {
-        coin10Device.write(new byte[]{(byte) 0x81});
-        coin10Device.write(new byte[]{0x40});
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public void refundCoins(int coin, int amount) {
+        byte[] data = new byte[]{0x54, 0x4F, 0x50, 0x04, 0x04, 0x40, 0x00, 0x00};
+        if (coin == 50) {
+            data[4] = 0x04;
+        } else if (coin == 10) {
+            data[4] = 0x05;
+        } else {
+            data[4] = 0x06;
         }
-    }
 
-    /***
-     * 十元退幣2個
-     */
-    public void refund10Coin2() {
-        coin10Device.write(new byte[]{(byte) 0x81});
-        coin10Device.write(new byte[]{0x41});
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /***
-     * 十元退幣5個
-     */
-    public void refund10Coin5() {
-        coin10Device.write(new byte[]{(byte) 0x81});
-        coin10Device.write(new byte[]{0x42});
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /***
-     * 十元退幣10個
-     */
-    public void refund10Coin10() {
-        coin10Device.write(new byte[]{(byte) 0x81});
-        coin10Device.write(new byte[]{0x43});
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /***
-     * 50元退幣1個
-     */
-    public void refund50Coin1() {
-        coin50Device.write(new byte[]{(byte) 0x81});
-        coin50Device.write(new byte[]{0x40});
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /***
-     * 50元退幣2個
-     */
-    public void refund50Coin2() {
-        coin50Device.write(new byte[]{(byte) 0x81});
-        coin50Device.write(new byte[]{0x41});
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /***
-     * 50元退幣5個
-     */
-    public void refund50Coin5() {
-        coin50Device.write(new byte[]{(byte) 0x81});
-        coin50Device.write(new byte[]{0x42});
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /***
-     * 50元退幣10個
-     */
-    public void refund50Coin10() {
-        coin50Device.write(new byte[]{(byte) 0x81});
-        coin50Device.write(new byte[]{0x43});
+        data[5] = (byte) (data[5] + amount - 0x01);
+        data[7] = (byte) (data[0] ^ data[1] ^ data[2] ^ data[3] ^ data[4] ^ data[5] ^ data[6]);
+        coinDevice.write(data);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -659,41 +521,39 @@ public class MainViewModel extends ViewModel {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if (coin10Device != null && coin50Device != null && coin10Device.isOpen() && coin50Device.isOpen()) {
+                if (coinDevice != null && coinDevice.isOpen()) {
                     MoneyRefund refund = getMoneyRefund();
                     MoneyCount moneyCount = getMoneyCount();
                     if (moneyCount != null && refund != null && refund.getRefund() == 1) {
+                        int five = refund.getFive();
                         int ten = refund.getTen();
                         int fifty = refund.getFifty();
                         ApacheServerRequest.moneyCountUpdate(0, moneyCount.getTen() - ten, moneyCount.getFifty() - fifty, moneyCount.getHundred());
+                        while (five > 0) {
+                            if (five >= 10) {
+                                refundCoins(5, 10);
+                                five -= 10;
+                            } else {
+                                refundCoins(5, five);
+                                five = 0;
+                            }
+                        }
                         while (ten > 0) {
                             if (ten >= 10) {
+                                refundCoins(10, 10);
                                 ten -= 10;
-                                refund10Coin10();
-                            } else if (ten >= 5) {
-                                ten -= 5;
-                                refund10Coin5();
-                            } else if (ten >= 2) {
-                                ten -= 2;
-                                refund10Coin2();
                             } else {
-                                ten -= 1;
-                                refund10Coin1();
+                                refundCoins(10, ten);
+                                ten = 0;
                             }
                         }
                         while (fifty > 0) {
                             if (fifty >= 10) {
+                                refundCoins(50, 10);
                                 fifty -= 10;
-                                refund50Coin10();
-                            } else if (fifty >= 5) {
-                                fifty -= 5;
-                                refund50Coin5();
-                            } else if (fifty >= 2) {
-                                fifty -= 2;
-                                refund50Coin2();
                             } else {
-                                fifty -= 1;
-                                refund50Coin1();
+                                refundCoins(50, fifty);
+                                fifty = 0;
                             }
                         }
                         ApacheServerRequest.moneyRefundStop();
