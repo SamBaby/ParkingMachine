@@ -301,6 +301,9 @@ public class MainActivity extends AppCompatActivity {
         private final int number;
 
         public countdownRunnable(int number) {
+            if(number == 6){
+                System.out.println();
+            }
             this.number = number;
         }
 

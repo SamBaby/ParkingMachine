@@ -168,7 +168,6 @@ public class CompanyIDFragment extends Fragment {
             ((MainActivity) getActivity()).resetCountdown(30, 6);
         });
         Button button7 = view.findViewById(R.id.button_7);
-        ((MainActivity) getActivity()).resetCountdown(30, 6);
         button7.setOnClickListener(v -> {
             input.setText(input.getText().toString() + "7");
             ((MainActivity) getActivity()).resetCountdown(30, 6);

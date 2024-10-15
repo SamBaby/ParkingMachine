@@ -924,7 +924,7 @@ public class EcpayFunction {
                     byte[] init = new byte[]{0x1b, 0x21, 0x00, 0x1c, 0x21, 0x00, 0x1d, 0x21, 0x00, 0x1b, 0x56, 0x00, 0x1b, 0x40, 0x1c, 0x26, 0x1B, 0x17, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x1D, 0x4C, 0x50, 0x00};
                     connector.WriteBytes(cxt, init, 0);
                     byte[] detailSize = new byte[]{0x1d, 0x21, 0x00};
-                    byte[] deadline = String.format("入 %s 現金", time).getBytes("Big5");
+                    byte[] deadline = String.format("入 %s", time).getBytes("Big5");
                     connector.WriteBytes(cxt, PrintCommand.position80, 0);
                     connector.WriteBytes(cxt, detailSize, 0);
                     connector.WriteBytes(cxt, deadline, 0);

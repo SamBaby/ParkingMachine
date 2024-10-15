@@ -117,9 +117,6 @@ public class CoinPayFragment extends Fragment {
 
     private void setCountdownView(Integer integer) {
         countdownText.setText(String.valueOf(integer));
-        if (integer == 45 && ((MainActivity) getActivity()).getCurrentPage() == 3) {
-            viewModel.setTotalPay(viewModel.getTotalMoney().getValue() + 115);
-        }
         if (integer == 1 && ((MainActivity) getActivity()).getCurrentPage() == 3) {
             ((MainActivity) getActivity()).cancelCountdown();
             viewModel.setSelectedCars(null);

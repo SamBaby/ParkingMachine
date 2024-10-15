@@ -280,7 +280,7 @@ public class LinePayFragment extends Fragment {
             Thread t = new Thread(() -> {
                 int index = 0;
                 while (index < 30 && postRet.get().isEmpty()) {
-                    String ret = linePayPost(1, barCode);
+                    String ret = linePayPost(viewModel.getTotalMoney().getValue(), barCode);
                     if (!ret.isEmpty()) {
                         postRet.set(ret);
                         break;
